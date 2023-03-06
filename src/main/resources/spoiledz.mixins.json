@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.spoiledz.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ItemMixin",
+    "BlockMixin",
+    "CraftingResultSlotMixin",
+    "LivingEntityMixin",
+    "InventoryMixin",
+    "LootTableMixin"
+  ],
+  "client": [
+    "client.ItemStackMixin",
+    "client.ItemRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

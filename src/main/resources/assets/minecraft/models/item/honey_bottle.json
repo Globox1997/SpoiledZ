@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/honey_bottle"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "spoiled": 1
+      },
+      "model": "spoiledz:item/honey_bottle"
+    }
+  ]
+}

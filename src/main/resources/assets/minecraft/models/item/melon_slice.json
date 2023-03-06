@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/melon_slice"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "spoiled": 1
+      },
+      "model": "spoiledz:item/melon_slice"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+    "replace": false,
+    "values": [
+        "minecraft:wheat",
+        "minecraft:egg",
+        "minecraft:milk_bucket",
+        "minecraft:honey_bottle"
+    ]
+}
