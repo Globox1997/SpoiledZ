@@ -9,7 +9,8 @@
     "CraftingResultSlotMixin",
     "LivingEntityMixin",
     "InventoryMixin",
-    "LootTableMixin"
+    "LootTableMixin",
+    "ItemScattererMixin"
   ],
   "client": [
     "client.ItemStackMixin",
