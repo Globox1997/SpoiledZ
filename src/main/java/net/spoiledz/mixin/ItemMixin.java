@@ -9,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.spoiledz.init.ConfigInit;
 import net.spoiledz.util.SpoiledUtil;
 
 @Mixin(Item.class)
@@ -17,9 +16,7 @@ public class ItemMixin {
 
     @Inject(method = "onCraft", at = @At("HEAD"))
     private void onCraftMixin(ItemStack stack, World world, PlayerEntity player, CallbackInfo info) {
-        if (ConfigInit.CONFIG.freshCrafting) {
-            SpoiledUtil.setItemStackSpoilage(world, stack);
-        }
+        SpoiledUtil.setItemStackSpoilage(world, stack);
     }
 
 }

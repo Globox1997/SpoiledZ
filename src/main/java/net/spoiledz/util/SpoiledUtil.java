@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.world.World;
 import net.spoiledz.SpoiledZMain;
+import net.spoiledz.init.ConfigInit;
 import net.spoiledz.init.TagInit;
 
 public class SpoiledUtil {
@@ -45,12 +46,19 @@ public class SpoiledUtil {
     }
 
     public static void setItemStackSpoilage(World world, ItemStack stack) {
-        if (!world.isClient && ((stack.isFood() || stack.isIn(TagInit.SPOILING_ITEMS)) && !stack.isIn(TagInit.NON_SPOILING_ITEMS))) {
+        if (!world.isClient && ((stack.isFood() || stack.isIn(TagInit.SPOILING_ITEMS)) && !stack.isIn(TagInit.NON_SPOILING_ITEMS)) && (!hasSpoilage(stack) || ConfigInit.CONFIG.freshCrafting)) {
             NbtCompound nbtCompound = stack.hasNbt() ? stack.getNbt() : new NbtCompound();
             nbtCompound.putString("Season", FabricSeasons.getCurrentSeason(world).asString());
             nbtCompound.putInt("Year", (int) (world.getTimeOfDay() / (FabricSeasons.CONFIG.getSeasonLength() * 4)));
             stack.setNbt(nbtCompound);
         }
+    }
+
+    public static boolean hasSpoilage(ItemStack stack) {
+        if (stack.hasNbt() && stack.getNbt().contains("Season") && stack.getNbt().contains("Year")) {
+            return true;
+        }
+        return false;
     }
 
     // // 0 = 0%, 1=25%, 2=50%, 3=75%, 4=100%

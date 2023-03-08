@@ -10,7 +10,9 @@
     "LivingEntityMixin",
     "InventoryMixin",
     "LootTableMixin",
-    "ItemScattererMixin"
+    "ItemScattererMixin",
+    "AbstractFurnaceBlockEntityMixin",
+    "FishingBobberEntityMixin"
   ],
   "client": [
     "client.ItemStackMixin",
