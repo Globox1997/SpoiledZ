@@ -16,7 +16,7 @@ public class ItemMixin {
 
     @Inject(method = "onCraft", at = @At("HEAD"))
     private void onCraftMixin(ItemStack stack, World world, PlayerEntity player, CallbackInfo info) {
-        SpoiledUtil.setItemStackSpoilage(world, stack);
+        SpoiledUtil.setItemStackSpoilage(world, stack, null);
     }
 
 }

@@ -19,6 +19,6 @@ public class BlockMixin {
 
     @Inject(method = "Lnet/minecraft/block/Block;dropStack(Lnet/minecraft/world/World;Ljava/util/function/Supplier;Lnet/minecraft/item/ItemStack;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/ItemEntity;setToDefaultPickupDelay()V"), locals = LocalCapture.CAPTURE_FAILSOFT)
     private static void dropStackMixin(World world, Supplier<ItemEntity> itemEntitySupplier, ItemStack stack, CallbackInfo info, ItemEntity itemEntity) {
-        SpoiledUtil.setItemStackSpoilage(world, itemEntity.getStack());
+        SpoiledUtil.setItemStackSpoilage(world, itemEntity.getStack(), null);
     }
 }

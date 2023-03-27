@@ -17,6 +17,6 @@ public class ItemScattererMixin {
 
     @Inject(method = "Lnet/minecraft/util/ItemScatterer;spawn(Lnet/minecraft/world/World;DDDLnet/minecraft/item/ItemStack;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z"), locals = LocalCapture.CAPTURE_FAILSOFT)
     private static void spawnMixin(World world, double x, double y, double z, ItemStack stack, CallbackInfo info, double d, double e, double f, double g, double h, double i, ItemEntity itemEntity) {
-        SpoiledUtil.setItemStackSpoilage(world, itemEntity.getStack());
+        SpoiledUtil.setItemStackSpoilage(world, itemEntity.getStack(), null);
     }
 }

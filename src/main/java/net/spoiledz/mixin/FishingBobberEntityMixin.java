@@ -24,6 +24,6 @@ public class FishingBobberEntityMixin {
     @Inject(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT)
     public void useMixin(ItemStack usedItem, CallbackInfoReturnable<Integer> info, PlayerEntity playerEntity, int i, LootContext.Builder builder, LootTable lootTable, List list, Iterator var7,
             ItemStack itemStack, ItemEntity itemEntity) {
-        SpoiledUtil.setItemStackSpoilage(playerEntity.world, itemEntity.getStack());
+        SpoiledUtil.setItemStackSpoilage(playerEntity.world, itemEntity.getStack(), null);
     }
 }

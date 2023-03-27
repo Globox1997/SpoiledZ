@@ -23,6 +23,6 @@ public class LootTableMixin {
     @Inject(method = "supplyInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/Inventory;setStack(ILnet/minecraft/item/ItemStack;)V", ordinal = 1), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void supplyInventoryMixin(Inventory inventory, LootContext context, CallbackInfo info, ObjectArrayList<ItemStack> objectArrayList, Random random, List<Integer> list,
             ObjectListIterator<ItemStack> var6, ItemStack stack) {
-        SpoiledUtil.setItemStackSpoilage(context.getWorld(), stack);
+        SpoiledUtil.setItemStackSpoilage(context.getWorld(), stack, null);
     }
 }

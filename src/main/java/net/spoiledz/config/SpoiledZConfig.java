@@ -13,6 +13,7 @@ public class SpoiledZConfig implements ConfigData {
     public boolean freshCrafting = false;
     @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
     public int effectChance = 35;
+    @Comment("In ticks")
     public int effectDuration = 400;
 
 }

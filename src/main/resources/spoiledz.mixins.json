@@ -3,6 +3,7 @@
   "minVersion": "0.8",
   "package": "net.spoiledz.mixin",
   "compatibilityLevel": "JAVA_17",
+  "plugin": "net.spoiledz.mixin.SpoiledzMixinPlugin",
   "mixins": [
     "ItemMixin",
     "BlockMixin",
@@ -11,8 +12,20 @@
     "InventoryMixin",
     "LootTableMixin",
     "ItemScattererMixin",
+    "CampfireBlockEntityMixin",
     "AbstractFurnaceBlockEntityMixin",
-    "FishingBobberEntityMixin"
+    "FishingBobberEntityMixin",
+    "ItemStackMixin",
+    "compat.JuicerBlockEntityMixin",
+    "compat.SkilletItemMixin",
+    "compat.SkilletBlockEntityMixin",
+    "compat.CuttingBoardBlockEntityMixin",
+    "compat.StoveBlockEntityMixin",
+    "compat.CookingPotBlockEntityMixin",
+    "compat.CookingPotEntityMixin",
+    "compat.WinePressBlockEntityMixin",
+    "compat.WoodFiredOvenBlockEntityMixin",
+    "access.AbstractFurnaceBlockEntityAccessor"
   ],
   "client": [
     "client.ItemStackMixin",
