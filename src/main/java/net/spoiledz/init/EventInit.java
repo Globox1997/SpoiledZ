@@ -33,7 +33,7 @@ public class EventInit {
         });
         FoodModifications.PROPERTIES_MODIFIERS.register((foodProperties, context) -> {
             ItemStack stack = context.stack();
-            if (stack == null || !stack.hasNbt()) {
+            if (stack == null || context.user() == null || !stack.hasNbt()) {
                 return foodProperties;
             }
             if (SpoiledUtil.getSpoilingTime(context.user().world, context.stack()) >= 0) {
