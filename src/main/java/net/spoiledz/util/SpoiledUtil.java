@@ -94,6 +94,13 @@ public class SpoiledUtil {
         return false;
     }
 
+    public static boolean isSpoilable(ItemStack stack) {
+        if ((stack.isFood() || stack.isIn(TagInit.SPOILING_ITEMS)) && !stack.isIn(TagInit.NON_SPOILING_ITEMS)) {
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isSpoilageEqual(ItemStack itemStack, ItemStack itemStack2) {
         if (itemStack != null && itemStack.hasNbt() && itemStack.getNbt().contains("Season") && itemStack2 != null && itemStack2.hasNbt() && itemStack2.getNbt().contains("Season")) {
             String itemSeason = itemStack.getNbt().getString("Season");
