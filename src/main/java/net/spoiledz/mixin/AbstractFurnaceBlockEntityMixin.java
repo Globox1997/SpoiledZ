@@ -48,8 +48,12 @@ public class AbstractFurnaceBlockEntityMixin {
     @Inject(method = "canAcceptRecipeOutput", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isItemEqualIgnoreDamage(Lnet/minecraft/item/ItemStack;)Z"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
     private static void canAcceptRecipeOutputMixin(@Nullable Recipe<?> recipe, DefaultedList<ItemStack> slots, int count, CallbackInfoReturnable<Boolean> info, ItemStack itemStack,
             ItemStack itemStack2) {
-        if (itemStack.isItemEqualIgnoreDamage(itemStack2) && !SpoiledUtil.isSpoilageEqual(itemStack, itemStack2)) {
-            info.setReturnValue(false);
+        if (itemStack.isItemEqualIgnoreDamage(itemStack2) && SpoiledUtil.isSpoilable(slots.get(0)) && SpoiledUtil.isSpoilable(itemStack2)) {
+            if (!SpoiledUtil.isSpoilageEqual(slots.get(0), itemStack2)) {
+                info.setReturnValue(false);
+            } else if (itemStack2.getCount() < count && itemStack2.getCount() < itemStack2.getMaxCount()) {
+                info.setReturnValue(true);
+            }
         }
     }
 
