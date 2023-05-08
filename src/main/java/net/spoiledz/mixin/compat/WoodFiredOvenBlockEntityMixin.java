@@ -10,8 +10,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import daniking.vinery.block.entity.WoodFiredOvenBlockEntity;
-import daniking.vinery.recipe.WoodFiredOvenRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
@@ -19,6 +17,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.spoiledz.util.SpoiledUtil;
+import satisfyu.vinery.block.entity.WoodFiredOvenBlockEntity;
+import satisfyu.vinery.recipe.WoodFiredOvenRecipe;
 
 @Mixin(WoodFiredOvenBlockEntity.class)
 public abstract class WoodFiredOvenBlockEntityMixin extends BlockEntity {
@@ -40,7 +40,7 @@ public abstract class WoodFiredOvenBlockEntityMixin extends BlockEntity {
 
     }
 
-    @Inject(method = "craft", at = @At(value = "INVOKE_ASSIGN", target = "Ldaniking/vinery/block/entity/WoodFiredOvenBlockEntity;getStack(I)Lnet/minecraft/item/ItemStack;", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT)
+    @Inject(method = "craft", at = @At(value = "INVOKE_ASSIGN", target = "Lsatisfyu/vinery/block/entity/WoodFiredOvenBlockEntity;getStack(I)Lnet/minecraft/item/ItemStack;", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT)
     protected void craftMixin(WoodFiredOvenRecipe recipe, CallbackInfo info, ItemStack recipeOutput, ItemStack outputSlotStack) {
         SpoiledUtil.setItemStackSpoilage(this.world, outputSlotStack, List.of(this.inventory.get(0), this.inventory.get(1), this.inventory.get(2)));
     }

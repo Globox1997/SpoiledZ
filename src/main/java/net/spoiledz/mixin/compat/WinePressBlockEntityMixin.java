@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import daniking.vinery.block.entity.WinePressBlockEntity;
 import net.minecraft.item.ItemStack;
 import net.spoiledz.util.SpoiledUtil;
+import satisfyu.vinery.block.entity.WinePressBlockEntity;
 
 @Mixin(WinePressBlockEntity.class)
 public abstract class WinePressBlockEntityMixin {
@@ -19,12 +19,12 @@ public abstract class WinePressBlockEntityMixin {
     @Nullable
     private ItemStack recipeStack = null;
 
-    @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Ldaniking/vinery/block/entity/WinePressBlockEntity;removeStack(II)Lnet/minecraft/item/ItemStack;"))
+    @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Lsatisfyu/vinery/block/entity/WinePressBlockEntity;removeStack(II)Lnet/minecraft/item/ItemStack;"))
     private static void stackCraftItemMixin(WinePressBlockEntity entity, CallbackInfo info) {
         ((WinePressBlockEntityMixin) (Object) entity).setRecipeStack(entity.getStack(0));
     }
 
-    @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Ldaniking/vinery/block/entity/WinePressBlockEntity;resetProgress()V"))
+    @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Lsatisfyu/vinery/block/entity/WinePressBlockEntity;resetProgress()V"))
     private static void craftItemMixin(WinePressBlockEntity entity, CallbackInfo info) {
         SpoiledUtil.setItemStackSpoilage(entity.getWorld(), entity.getStack(1), List.of(((WinePressBlockEntityMixin) (Object) entity).getRecipeStack()));
     }
