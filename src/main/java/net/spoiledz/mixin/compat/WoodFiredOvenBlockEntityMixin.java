@@ -30,7 +30,7 @@ public abstract class WoodFiredOvenBlockEntityMixin extends BlockEntity {
         super(type, pos, state);
     }
 
-    @Inject(method = "canCraft", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isItemEqualIgnoreDamage(Lnet/minecraft/item/ItemStack;)Z"), locals = LocalCapture.CAPTURE_FAILSOFT)
+    @Inject(method = "canCraft", at = @At(value = "INVOKE", target = "Lsatisfyu/vinery/block/entity/WoodFiredOvenBlockEntity;getMaxCountPerStack()I"), locals = LocalCapture.CAPTURE_FAILSOFT)
     protected void canCraftMixin(WoodFiredOvenRecipe recipe, CallbackInfoReturnable<Boolean> info, ItemStack recipeOutput, ItemStack outputSlotStack) {
         if (outputSlotStack.isItemEqualIgnoreDamage(recipeOutput) && ((!inventory.get(0).isEmpty() && !SpoiledUtil.isSpoilageEqual(outputSlotStack, inventory.get(0)))
                 || (!inventory.get(1).isEmpty() && !SpoiledUtil.isSpoilageEqual(outputSlotStack, inventory.get(1))
