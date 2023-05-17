@@ -1,0 +1,7 @@
+{
+    "item.spoiledz.tooltip": "Spoiled %s%%",
+    "text.autoconfig.spoiledz.title": "SpoiledZ Config.",
+    "text.autoconfig.spoiledz.option.freshCrafting": "Artesanato fresco",
+    "text.autoconfig.spoiledz.option.effectChance": "Possibilidade de efeito",
+    "text.autoconfig.spoiledz.option.effectDuration": "Duração do efeito"
+}
