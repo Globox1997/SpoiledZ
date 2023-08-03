@@ -26,7 +26,7 @@ public class ItemStackMixin {
     private void getTooltipMixin(@Nullable PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> info, List<Text> list) {
         ItemStack stack = (ItemStack) (Object) this;
         if (player != null && stack.hasNbt() && ((stack.isFood() || stack.isIn(TagInit.SPOILING_ITEMS)) && !stack.isIn(TagInit.NON_SPOILING_ITEMS)) && stack.getNbt().contains("Season")) {
-            list.add(Text.translatable("item.spoiledz.tooltip", SpoiledUtil.getSpoilingTime(player.world, stack) * 25));
+            list.add(Text.translatable("item.spoiledz.tooltip", SpoiledUtil.getSpoilingTime(player.getWorld(), stack) * 25));
         }
     }
 

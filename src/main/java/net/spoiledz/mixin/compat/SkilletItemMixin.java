@@ -30,7 +30,7 @@ public class SkilletItemMixin {
             Optional<CampfireCookingRecipe> recipe) {
         if (!world.isClient) {
             recipe.ifPresent((campfireCookingRecipe) -> {
-                ItemStack resultStack = campfireCookingRecipe.craft(new SimpleInventory(new ItemStack[0]));
+                ItemStack resultStack = campfireCookingRecipe.craft(new SimpleInventory(new ItemStack[0]), world.getRegistryManager());
                 SpoiledUtil.setItemStackSpoilage(world, resultStack, List.of(cookingStack));
                 if (!player.getInventory().insertStack(resultStack)) {
                     player.dropItem(resultStack, false);

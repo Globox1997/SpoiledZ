@@ -36,7 +36,7 @@ public class JuicerBlockEntityMixin {
     @Inject(method = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;hasRecipe(Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;)Z", at = @At(value = "RETURN"), cancellable = true, remap = false)
     private static void hasRecipeMixin(JuicerBlockEntity entity, CallbackInfoReturnable<Boolean> info) {
         if (info.getReturnValue()) {
-            if (!entity.getStack(3).isEmpty() && entity.getStack(3).isItemEqualIgnoreDamage(entity.getStack(0)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(0))) {
+            if (!entity.getStack(3).isEmpty() && ItemStack.areItemsEqual(entity.getStack(3), entity.getStack(0)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(0))) {
                 info.setReturnValue(false);
             }
         }
@@ -44,7 +44,7 @@ public class JuicerBlockEntityMixin {
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;useStoredBottleOnJuice()V"), cancellable = true)
     private static void tickMixin(World world, BlockPos pos, BlockState state, JuicerBlockEntity entity, CallbackInfo info) {
-        if (!entity.getStack(4).isEmpty() && entity.getStack(3).isItemEqualIgnoreDamage(entity.getStack(4)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(4))) {
+        if (!entity.getStack(4).isEmpty() && ItemStack.areItemsEqual(entity.getStack(3), entity.getStack(4)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(4))) {
             info.cancel();
         }
     }

@@ -42,7 +42,7 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Override
     public ItemEntity dropStack(ItemStack stack) {
-        SpoiledUtil.setItemStackSpoilage(world, stack, null);
+        SpoiledUtil.setItemStackSpoilage(this.getWorld(), stack, null);
 
         return super.dropStack(stack);
     }

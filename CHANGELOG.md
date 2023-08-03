@@ -1,6 +1,6 @@
 ### Added:
 - 
 ### Fixed:
-- Fixed vinery compat #2
-### Changed:
 - 
+### Changed:
+- Updated to mc 1.20.1

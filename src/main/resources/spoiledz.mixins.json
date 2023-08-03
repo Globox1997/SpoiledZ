@@ -22,9 +22,7 @@
     "compat.CuttingBoardBlockEntityMixin",
     "compat.StoveBlockEntityMixin",
     "compat.CookingPotBlockEntityMixin",
-    "compat.CookingPotEntityMixin",
     "compat.WinePressBlockEntityMixin",
-    "compat.WoodFiredOvenBlockEntityMixin",
     "access.AbstractFurnaceBlockEntityAccessor"
   ],
   "client": [

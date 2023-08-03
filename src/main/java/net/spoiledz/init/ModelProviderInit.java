@@ -7,8 +7,8 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.spoiledz.util.SpoiledUtil;
 
 @Environment(EnvType.CLIENT)
@@ -21,8 +21,8 @@ public class ModelProviderInit {
     public static void init() {
         extraItemIds.forEach((id) -> extraItemIdentifiers.add(new Identifier(id)));
 
-        Registry.ITEM.forEach((item) -> {
-            if (item.isFood() || extraItemIdentifiers.contains(Registry.ITEM.getId(item))) {
+        Registries.ITEM.forEach((item) -> {
+            if (item.isFood() || extraItemIdentifiers.contains(Registries.ITEM.getId(item))) {
                 spoiledItems.add(item);
             }
         });
@@ -33,7 +33,7 @@ public class ModelProviderInit {
         // cookie, melon_slice, dried_kelp, beef, cooked_beef, chicken, cooked_chicken, rotten_flesh, spider_eye, carrot, potato, baked_potato, poisonous_potato, golden_carrot, pumpkin_pie, rabbit,
         // cooked_rabbit, rabbit_stew, mutton, cooked_mutton, chorus_fruit, beetroot, beetroot_soup, suspicious_stew, sweet_berries, glow_berries, honey_bottle]
 
-        RegistryEntryAddedCallback.event(Registry.ITEM).register((rawId, id, item) -> {
+        RegistryEntryAddedCallback.event(Registries.ITEM).register((rawId, id, item) -> {
             if (item.isFood() || extraItemIdentifiers.contains(id)) {
                 registerModelPredicateProvider(item);
             }
@@ -45,7 +45,7 @@ public class ModelProviderInit {
             if (world != null)
                 return (float) (SpoiledUtil.getSpoilingTime(world, stack) / 4f);
             else if (entity != null)
-                return (float) (SpoiledUtil.getSpoilingTime(entity.world, stack) / 4f);
+                return (float) (SpoiledUtil.getSpoilingTime(entity.getWorld(), stack) / 4f);
             else
                 return 0f;
         });

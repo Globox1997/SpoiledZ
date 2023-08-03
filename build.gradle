@@ -1,10 +1,7 @@
 plugins {
-	id 'fabric-loom' version '1.1-SNAPSHOT'
+	id 'fabric-loom' version '1.3-SNAPSHOT'
 	id 'maven-publish'
 }
-
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -17,6 +14,13 @@ repositories {
 	maven { url "https://maven.ryanliptak.com/" }
 	maven { url = uri("https://storage.googleapis.com/devan-maven/") }
 	maven { url "https://maven.siphalor.de" }
+	maven { url "https://api.modrinth.com/maven" }
+}
+
+configurations.all {
+   resolutionStrategy {
+     force("net.fabricmc:fabric-loader:$loader_version")
+   }
 }
 
 dependencies {
@@ -37,29 +41,29 @@ dependencies {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Seasons
-	modImplementation ('curse.maven:fabric-seasons-413523:3841956') {
-	 	exclude(group: "net.fabricmc.fabric-api")
+    modCompileOnly modRuntimeOnly ('maven.modrinth:fabric-seasons:2.2.1+1.20') {
+		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Capsaicin
-	modImplementation("de.siphalor:capsaicin-1.19:1.1.0+mc1.19.3")
-	include(modApi("de.siphalor:capsaicin-1.19:1.1.0+mc1.19.3"))
-	//1.1.0+mc1.19.3/
+	modImplementation("de.siphalor:capsaicin-1.20:1.3.3+mc1.20.1")
+	include(modApi("de.siphalor:capsaicin-1.20:1.3.3+mc1.20.1"))
+
 	// ARRP
 	// modImplementation("net.devtech:arrp:${project.arrp_version}")
 	// AppleSkin
-	modCompileOnly "squeek.appleskin:appleskin-fabric:mc1.19-2.4.0:api"
+	// modCompileOnly "squeek.appleskin:appleskin-fabric:mc1.19-2.4.0:api"
 
 	// Farmers Delight
-	modCompileOnly ('curse.maven:farmers-delight-fabric-482834:4111426') {
-	 	exclude(group: "net.fabricmc.fabric-api")
+	modCompileOnly ('maven.modrinth:farmers-delight-fabric:1.4.1') {
+		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Expanded Delight
-	modCompileOnly ('curse.maven:expanded-delight-620770:4409058') {
-	 	exclude(group: "net.fabricmc.fabric-api")
+	modCompileOnly ('maven.modrinth:expanded-delight:0.2.5') {
+		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Vinary
-	modCompileOnly ('curse.maven:lets-do-wine-704465:4519719') {
-	 	exclude(group: "net.fabricmc.fabric-api")
+	modCompileOnly ('maven.modrinth:vinery:ylAN9jih') {
+		exclude(group: "net.fabricmc.fabric-api")
 	}
 }
 
@@ -81,6 +85,9 @@ java {
 	// if it is present.
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 jar {

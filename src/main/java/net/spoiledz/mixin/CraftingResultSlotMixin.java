@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.inventory.RecipeInputInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.slot.CraftingResultSlot;
 import net.spoiledz.util.SpoiledUtil;
@@ -23,7 +23,7 @@ public class CraftingResultSlotMixin {
     @Shadow
     @Final
     @Mutable
-    private CraftingInventory input;
+    private RecipeInputInventory input;
 
     @Inject(method = "onTakeItem", at = @At("HEAD"))
     private void onTakeItemMixin(PlayerEntity player, ItemStack stack, CallbackInfo info) {
@@ -31,7 +31,7 @@ public class CraftingResultSlotMixin {
         for (int i = 0; i < input.size(); i++) {
             inputStacks.add(input.getStack(i));
         }
-        SpoiledUtil.setItemStackSpoilage(player.world, stack, inputStacks);
+        SpoiledUtil.setItemStackSpoilage(player.getWorld(), stack, inputStacks);
     }
 
 }

@@ -17,15 +17,15 @@ public class EventInit {
         FoodEvents.EATEN.on((event) -> {
             FoodContext context = event.context();
             if (context.stack() != null && context.user() != null) {
-                if (!context.user().world.isClient && SpoiledUtil.getSpoilingTime(context.user().world, context.stack()) >= 0) {
-                    int spoiledTime = SpoiledUtil.getSpoilingTime(context.user().world, context.stack());
+                if (!context.user().getWorld().isClient() && SpoiledUtil.getSpoilingTime(context.user().getWorld(), context.stack()) >= 0) {
+                    int spoiledTime = SpoiledUtil.getSpoilingTime(context.user().getWorld(), context.stack());
 
-                    if (spoiledTime == 3 && context.user().world.getRandom().nextFloat() < (float) (ConfigInit.CONFIG.effectChance / 100f)) {
+                    if (spoiledTime == 3 && context.user().getWorld().getRandom().nextFloat() < (float) (ConfigInit.CONFIG.effectChance / 100f)) {
                         context.user().addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, (int) (ConfigInit.CONFIG.effectDuration * 0.66f), 1));
                     } else if (spoiledTime >= 4) {
                         context.user().addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, ConfigInit.CONFIG.effectDuration / 2, 0));
                         context.user().addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, ConfigInit.CONFIG.effectDuration, 1));
-                        if (context.user().world.getRandom().nextFloat() < 0.05f)
+                        if (context.user().getWorld().getRandom().nextFloat() < 0.05f)
                             context.user().addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, ConfigInit.CONFIG.effectDuration / 3, 0));
                     }
                 }
@@ -36,8 +36,8 @@ public class EventInit {
             if (stack == null || context.user() == null || !stack.hasNbt()) {
                 return foodProperties;
             }
-            if (SpoiledUtil.getSpoilingTime(context.user().world, context.stack()) >= 0) {
-                int spoiledTime = SpoiledUtil.getSpoilingTime(context.user().world, context.stack());
+            if (SpoiledUtil.getSpoilingTime(context.user().getWorld(), context.stack()) >= 0) {
+                int spoiledTime = SpoiledUtil.getSpoilingTime(context.user().getWorld(), context.stack());
                 if (spoiledTime == 3) {
                     foodProperties.setHunger((int) (foodProperties.getHunger() * 0.8f));
                 } else if (spoiledTime >= 4) {
