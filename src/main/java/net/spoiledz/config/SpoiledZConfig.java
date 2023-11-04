@@ -9,6 +9,8 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 @Config.Gui.Background("minecraft:textures/block/stone.png")
 public class SpoiledZConfig implements ConfigData {
 
+    @Comment("Season count for 100% spoilage")
+    public int seasonSpoilage = 4;
     @Comment("On spoiled craft, reset spoiling time")
     public boolean freshCrafting = false;
     @ConfigEntry.BoundedDiscrete(min = 0, max = 100)

@@ -20,39 +20,36 @@ public class SpoiledUtil {
             String itemSeason = stack.getNbt().getString("Season");
             int itemYear = stack.getNbt().getInt("Year");
 
-            int currentYear = (int) (world.getTimeOfDay() / (FabricSeasons.CONFIG.getSeasonLength() * 4));
-
-            int yearDifference = currentYear - itemYear;
-            if (yearDifference > 2)
-                return 4;
-
+            int currentYear = (int) (world.getTimeOfDay() / (FabricSeasons.getCurrentSeason(world).getSeasonLength() * 4));
             String currentSeason = FabricSeasons.getCurrentSeason(world).asString();
-            int seasonDifference = SpoiledZMain.SEASONS.indexOf(currentSeason) - SpoiledZMain.SEASONS.indexOf(itemSeason);
 
-            if (yearDifference == 0)
-                return seasonDifference / 2;
+            int yearDiff = currentYear - itemYear;
 
-            if (seasonDifference >= 0)
-                seasonDifference += yearDifference * 4;
-            else
-                seasonDifference = yearDifference * 4 + seasonDifference;
+            // Determine the number of seasons within the years that have passed
+            int seasonsPassed = 0;
 
-            if (seasonDifference >= 10)
-                return 4;
-            if (seasonDifference < 0)
-                return 0;
+            int oldSeasonIndex = SpoiledZMain.SEASONS.indexOf(itemSeason);
+            int currentSeasonIndex = SpoiledZMain.SEASONS.indexOf(currentSeason);
 
-            // System.out.print(stack + " : " + seasonDifference);
-
-            return seasonDifference / 2;
-        } else
+            if (oldSeasonIndex != -1 && currentSeasonIndex != -1) {
+                if (yearDiff > 0) {
+                    seasonsPassed += yearDiff * SpoiledZMain.SEASONS.size();
+                    seasonsPassed += (currentSeasonIndex - oldSeasonIndex + SpoiledZMain.SEASONS.size()) % SpoiledZMain.SEASONS.size();
+                } else if (yearDiff == 0) {
+                    seasonsPassed = (currentSeasonIndex - oldSeasonIndex + SpoiledZMain.SEASONS.size()) % SpoiledZMain.SEASONS.size();
+                }
+            }
+            int returnSpoilage = (int) (seasonsPassed / ((float) ConfigInit.CONFIG.seasonSpoilage / 4));
+            return returnSpoilage > 4 ? 4 : returnSpoilage;
+        } else {
             return -1;
+        }
     }
 
     public static void setItemStackSpoilage(World world, ItemStack stack, @Nullable List<ItemStack> recipeStacks) {
         if (!world.isClient && ((stack.isFood() || stack.isIn(TagInit.SPOILING_ITEMS)) && !stack.isIn(TagInit.NON_SPOILING_ITEMS))) {
             if (recipeStacks != null && !recipeStacks.isEmpty() && !ConfigInit.CONFIG.freshCrafting) {
-                int year = (int) (world.getTimeOfDay() / (FabricSeasons.CONFIG.getSeasonLength() * 4));
+                int year = (int) (world.getTimeOfDay() / (FabricSeasons.getCurrentSeason(world).getSeasonLength() * 4));
                 String season = FabricSeasons.getCurrentSeason(world).asString();
 
                 for (int i = 0; i < recipeStacks.size(); i++) {
@@ -81,7 +78,7 @@ public class SpoiledUtil {
             } else if (!hasSpoilage(stack) || ConfigInit.CONFIG.freshCrafting) {
                 NbtCompound nbtCompound = stack.hasNbt() ? stack.getNbt() : new NbtCompound();
                 nbtCompound.putString("Season", FabricSeasons.getCurrentSeason(world).asString());
-                nbtCompound.putInt("Year", (int) (world.getTimeOfDay() / (FabricSeasons.CONFIG.getSeasonLength() * 4)));
+                nbtCompound.putInt("Year", (int) (world.getTimeOfDay() / (FabricSeasons.getCurrentSeason(world).getSeasonLength() * 4)));
                 stack.setNbt(nbtCompound);
             }
         }
