@@ -29,7 +29,7 @@ public class SpoiledzMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.contains("JuicerBlockEntityMixin") && !FabricLoader.getInstance().isModLoaded("expandeddelight")) {
             return false;
         }
-        if ((mixinClassName.contains("CookingPotEntityMixin") || mixinClassName.contains("WinePressBlockEntityMixin") || mixinClassName.contains("WoodFiredOvenBlockEntityMixin"))
+        if ((mixinClassName.contains("CookingPotEntityMixin") || mixinClassName.contains("ApplePressBlockEntityMixin") || mixinClassName.contains("WoodFiredOvenBlockEntityMixin"))
                 && !FabricLoader.getInstance().isModLoaded("vinery")) {
             return false;
         }

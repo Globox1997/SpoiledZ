@@ -24,7 +24,7 @@
     "compat.CuttingBoardBlockEntityMixin",
     "compat.StoveBlockEntityMixin",
     "compat.CookingPotBlockEntityMixin",
-    "compat.WinePressBlockEntityMixin",
+    "compat.ApplePressBlockEntityMixin",
     "access.AbstractFurnaceBlockEntityAccessor"
   ],
   "client": [

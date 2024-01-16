@@ -41,7 +41,7 @@ dependencies {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Seasons
-    modCompileOnly modRuntimeOnly ('maven.modrinth:fabric-seasons:2.2.1+1.20') {
+    modCompileOnly modRuntimeOnly ('maven.modrinth:fabric-seasons:2.3+1.20') {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Capsaicin
@@ -62,7 +62,7 @@ dependencies {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Vinary
-	modCompileOnly ('maven.modrinth:vinery:ylAN9jih') {
+	modCompileOnly ('maven.modrinth:vinery:1.4.7') {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 }
