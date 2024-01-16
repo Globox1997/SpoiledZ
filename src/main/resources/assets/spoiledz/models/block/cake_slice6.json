@@ -1,0 +1,22 @@
+{
+    "textures": {
+        "particle": "spoiledz:block/cake_side",
+        "bottom": "spoiledz:block/cake_bottom",
+        "top": "spoiledz:block/cake_top",
+        "side": "spoiledz:block/cake_side",
+        "inside": "spoiledz:block/cake_inner"
+    },
+    "elements": [
+        {   "from": [ 13, 0, 1 ],
+            "to": [ 15, 8, 15 ],
+            "faces": {
+                "down":  { "texture": "#bottom", "cullface": "down" },
+                "up":    { "texture": "#top" },
+                "north": { "texture": "#side" },
+                "south": { "texture": "#side" },
+                "west":  { "texture": "#inside" },
+                "east":  { "texture": "#side" }
+            }
+        }
+    ]
+}

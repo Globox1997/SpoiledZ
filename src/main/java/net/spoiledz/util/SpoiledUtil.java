@@ -1,18 +1,30 @@
 package net.spoiledz.util;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
 import io.github.lucaargolo.seasons.FabricSeasons;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 import net.spoiledz.SpoiledZMain;
+import net.spoiledz.access.ServerWorldAccess;
 import net.spoiledz.init.ConfigInit;
 import net.spoiledz.init.TagInit;
 
 public class SpoiledUtil {
+
+    public static final BooleanProperty SPOILED = BooleanProperty.of("spoiled");
 
     // 0 = 0%, 1=25%, 2=50%, 3=75%, 4=100%
     public static int getSpoilingTime(World world, ItemStack stack) {
@@ -133,53 +145,95 @@ public class SpoiledUtil {
             return false;
     }
 
-    // // 0 = 0%, 1=25%, 2=50%, 3=75%, 4=100%
-    // public static int getSpoilingTime(World world, String itemSeason, int itemYear) {
-    // int currentYear = (int) (world.getTimeOfDay() / (FabricSeasons.CONFIG.getSeasonLength() * 4));
-    // String currentSeason = FabricSeasons.getCurrentSeason(world).asString();
-    // if (currentYear > itemYear + 2)
-    // return 4;
+    public static class FoodBlockMap extends PersistentState {
 
-    // int seasonDifference = 0;
-    // if (currentYear != itemYear) {
+        private HashMap<BlockPos, ItemStack> FOOD_BLOCK_MAP = new HashMap<BlockPos, ItemStack>();
 
-    // // index
-    // // 0 ,1 ,2 ,3
-    // // spring,summer,fall,winter
+        public FoodBlockMap() {
+        }
 
-    // // currentSeason
-    // // spring(0), winter(3)
+        @Override
+        public NbtCompound writeNbt(NbtCompound nbt) {
+            nbt.putInt("FoodBlockMapSize", this.FOOD_BLOCK_MAP.size());
+            Iterator<Map.Entry<BlockPos, ItemStack>> iterator = this.FOOD_BLOCK_MAP.entrySet().iterator();
+            int count = 0;
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPos, ItemStack> entry = iterator.next();
+                if (entry.getValue().getNbt() != null) {
+                    nbt.putInt("FoodBlockX" + count, entry.getKey().getX());
+                    nbt.putInt("FoodBlockY" + count, entry.getKey().getY());
+                    nbt.putInt("FoodBlockZ" + count, entry.getKey().getZ());
+                    nbt.putInt("FoodBlockYear" + count, entry.getValue().getNbt().getInt("Year"));
+                    nbt.putString("FoodBlockSeason" + count, entry.getValue().getNbt().getString("Season"));
+                    count++;
+                }
+            }
+            return nbt;
+        }
 
-    // // itemSeason
-    // // fall(2), summer(1)
-    // int curentSeasonInt = SpoiledZMain.SEASONS.indexOf(currentSeason);
-    // int itemSeasonInt = SpoiledZMain.SEASONS.indexOf(itemSeason);
+        public static FoodBlockMap fromNbt(ServerWorld world, NbtCompound nbt) {
+            FoodBlockMap foodBlockMap = new FoodBlockMap();
+            for (int i = 0; i < nbt.getInt("FoodBlockMapSize"); i++) {
+                ItemStack itemStack = new ItemStack(Items.APPLE);
+                NbtCompound stackNbt = new NbtCompound();
+                stackNbt.putString("Season", nbt.getString("FoodBlockSeason" + i));
+                stackNbt.putInt("Year", nbt.getInt("FoodBlockYear" + i));
+                itemStack.setNbt(stackNbt);
+                foodBlockMap.FOOD_BLOCK_MAP.put(new BlockPos(nbt.getInt("FoodBlockX" + i), nbt.getInt("FoodBlockY" + i), nbt.getInt("FoodBlockZ" + i)), itemStack);
+            }
+            return foodBlockMap;
+        }
 
-    // if (currentYear == itemYear + 2) {
-    // if (SpoiledZMain.SEASONS.indexOf(currentSeason) < SpoiledZMain.SEASONS.indexOf(itemSeason))
-    // return 2 + (SpoiledZMain.SEASONS.indexOf(itemSeason) - SpoiledZMain.SEASONS.indexOf(currentSeason)) / 2;
-    // else
-    // return 4;
-    // }
+        public void addFoodBlock(BlockPos pos, ItemStack stack) {
+            this.FOOD_BLOCK_MAP.put(pos, stack);
+            this.markDirty();
+        }
 
-    // if (itemYear + 1 == currentYear && SpoiledZMain.SEASONS.indexOf(currentSeason) >= SpoiledZMain.SEASONS.indexOf(itemSeason)) {
-    // return 4;
-    // }
-    // if (itemYear + 1 == currentYear)
-    // seasonDifference += 4;
+        public void removeFoodBlock(BlockPos pos) {
+            if (this.FOOD_BLOCK_MAP.containsKey(pos)) {
+                this.FOOD_BLOCK_MAP.remove(pos);
+                this.markDirty();
+            }
+        }
 
-    // seasonDifference += 4 - Math.abs(SpoiledZMain.SEASONS.indexOf(currentSeason) - SpoiledZMain.SEASONS.indexOf(itemSeason));
+        public HashMap<BlockPos, ItemStack> getFoodBlockMap() {
+            return this.FOOD_BLOCK_MAP;
+        }
 
-    // // if (seasonDifference > 8)
-    // // return 4;
-    // } else
-    // seasonDifference = Math.abs(SpoiledZMain.SEASONS.indexOf(currentSeason) - SpoiledZMain.SEASONS.indexOf(itemSeason));
+        public static void onRemovedFoodBlock(World world, BlockPos pos, @Nullable BlockState newState) {
+            if (((ServerWorldAccess) world).getFoodBlockMap().getFoodBlockMap().containsKey(pos)) {
+                if (newState != null && !newState.isAir() && newState.contains(SPOILED)
+                        && SpoiledUtil.getSpoilingTime(world, ((ServerWorldAccess) world).getFoodBlockMap().getFoodBlockMap().get(pos)) < 4) {
+                    return;
+                }
+                ((ServerWorldAccess) world).getFoodBlockMap().removeFoodBlock(pos);
+            }
+        }
 
-    // // if (seasonDifference == 0 && year != currentYear) {
-    // // return 4;
-    // // }
+        public static void onPlacedFoodBlock(World world, BlockPos pos, BlockState state, ItemStack itemStack) {
+            if (!world.isClient()) {
+                int spoiledTime = SpoiledUtil.getSpoilingTime(world, itemStack);
+                if (spoiledTime >= 4) {
+                    world.setBlockState(pos, state.with(SpoiledUtil.SPOILED, true));
+                } else {
+                    ((ServerWorldAccess) world).getFoodBlockMap().addFoodBlock(pos, itemStack);
+                    if (state.get(SpoiledUtil.SPOILED)) {
+                        world.setBlockState(pos, state.with(SpoiledUtil.SPOILED, false));
+                    }
+                }
+            }
+        }
 
-    // return seasonDifference;
-    // }
+        public static void scheduledTickFoodBlock(World world, BlockPos pos, BlockState state) {
+            if (((ServerWorldAccess) world).getFoodBlockMap().getFoodBlockMap().containsKey(pos)) {
+                int spoiledTime = SpoiledUtil.getSpoilingTime(world, ((ServerWorldAccess) world).getFoodBlockMap().getFoodBlockMap().get(pos));
+                if (spoiledTime >= 4) {
+                    world.setBlockState(pos, state.with(SpoiledUtil.SPOILED, true));
+                    ((ServerWorldAccess) world).getFoodBlockMap().removeFoodBlock(pos);
+                }
+            }
+        }
+
+    }
 
 }

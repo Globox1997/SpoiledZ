@@ -1,0 +1,46 @@
+{
+  "variants": {
+    "bites=0,spoiled=false": {
+      "model": "minecraft:block/cake"
+    },
+    "bites=1,spoiled=false": {
+      "model": "minecraft:block/cake_slice1"
+    },
+    "bites=2,spoiled=false": {
+      "model": "minecraft:block/cake_slice2"
+    },
+    "bites=3,spoiled=false": {
+      "model": "minecraft:block/cake_slice3"
+    },
+    "bites=4,spoiled=false": {
+      "model": "minecraft:block/cake_slice4"
+    },
+    "bites=5,spoiled=false": {
+      "model": "minecraft:block/cake_slice5"
+    },
+    "bites=6,spoiled=false": {
+      "model": "minecraft:block/cake_slice6"
+    },
+    "bites=0,spoiled=true": {
+      "model": "spoiledz:block/cake"
+    },
+    "bites=1,spoiled=true": {
+      "model": "spoiledz:block/cake_slice1"
+    },
+    "bites=2,spoiled=true": {
+      "model": "spoiledz:block/cake_slice2"
+    },
+    "bites=3,spoiled=true": {
+      "model": "spoiledz:block/cake_slice3"
+    },
+    "bites=4,spoiled=true": {
+      "model": "spoiledz:block/cake_slice4"
+    },
+    "bites=5,spoiled=true": {
+      "model": "spoiledz:block/cake_slice5"
+    },
+    "bites=6,spoiled=true": {
+      "model": "spoiledz:block/cake_slice6"
+    }
+  }
+}

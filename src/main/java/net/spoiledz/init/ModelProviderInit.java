@@ -16,7 +16,7 @@ public class ModelProviderInit {
 
     private static final List<Item> spoiledItems = new ArrayList<Item>();
     private static final List<Identifier> extraItemIdentifiers = new ArrayList<Identifier>();
-    private static final List<String> extraItemIds = List.of("minecraft:wheat", "minecraft:egg", "minecraft:milk_bucket", "minecraft:honey_bottle");
+    private static final List<String> extraItemIds = List.of("minecraft:wheat", "minecraft:egg", "minecraft:milk_bucket", "minecraft:honey_bottle", "minecraft:cake");
 
     public static void init() {
         extraItemIds.forEach((id) -> extraItemIdentifiers.add(new Identifier(id)));
