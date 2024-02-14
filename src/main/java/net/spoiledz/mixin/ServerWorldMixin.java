@@ -60,7 +60,7 @@ public abstract class ServerWorldMixin extends World implements ServerWorldAcces
 
     @Inject(method = "setTimeOfDay", at = @At("HEAD"))
     private void setTimeOfDayMixin(long timeOfDay, CallbackInfo info) {
-        if ((int) timeOfDay % 20 == 0 && this.currentSeason == null || this.currentSeason != FabricSeasons.getCurrentSeason()) {
+        if ((int) timeOfDay % 20 == 0 && this.currentSeason == null || this.currentSeason != FabricSeasons.getCurrentSeason(this)) {
             if (this.currentSeason != null) {
                 for (Map.Entry<BlockPos, ItemStack> entry : new ArrayList<>(this.foodBlockMap.getFoodBlockMap().entrySet())) {
                     if (this.getBlockState(entry.getKey()).contains(SpoiledUtil.SPOILED)) {
@@ -74,7 +74,7 @@ public abstract class ServerWorldMixin extends World implements ServerWorldAcces
                     }
                 }
             }
-            this.currentSeason = FabricSeasons.getCurrentSeason();
+            this.currentSeason = FabricSeasons.getCurrentSeason(this);
         }
     }
 
