@@ -11,10 +11,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.item.ItemStack;
 import net.spoiledz.util.SpoiledUtil;
-import satisfyu.vinery.block.entity.ApplePressBlockEntity;
+import satisfyu.vinery.entity.blockentities.ApplePressBlockEntity;
 import satisfyu.vinery.recipe.ApplePressRecipe;
 
-@Mixin(ApplePressBlockEntity.class)
+@Mixin(value = ApplePressBlockEntity.class, remap = false)
 public abstract class ApplePressBlockEntityMixin {
 
     @Nullable
