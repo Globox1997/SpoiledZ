@@ -42,12 +42,13 @@ public class ModelProviderInit {
 
     private static void registerModelPredicateProvider(Item item) {
         ModelPredicateProviderRegistry.register(item, new Identifier("spoiled"), (stack, world, entity, seed) -> {
-            if (world != null)
+            if (world != null) {
                 return (float) (SpoiledUtil.getSpoilingTime(world, stack) / 4f);
-            else if (entity != null)
+            } else if (entity != null) {
                 return (float) (SpoiledUtil.getSpoilingTime(entity.getWorld(), stack) / 4f);
-            else
+            } else {
                 return 0f;
+            }
         });
     }
 }
