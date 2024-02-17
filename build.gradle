@@ -3,9 +3,12 @@ plugins {
 	id 'maven-publish'
 }
 
-archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
 
 repositories {
 	maven { url "https://maven.shedaniel.me/" }
@@ -48,11 +51,11 @@ dependencies {
 	// modCompileOnly "squeek.appleskin:appleskin-fabric:mc1.19-2.4.0:api"
 
 	// Farmers Delight
-	modCompileOnly ('maven.modrinth:farmers-delight-fabric:1.4.1') {
+	modCompileOnly ('maven.modrinth:farmers-delight-fabric:1.4.3') {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Expanded Delight
-	modCompileOnly ('maven.modrinth:expanded-delight:0.2.5') {
+	modCompileOnly ('maven.modrinth:expanded-delight:0.3.0') {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Vinery
@@ -86,7 +89,7 @@ java {
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
+		rename { "${it}_${project.base.archivesName.get()}"}
 	}
 }
 
