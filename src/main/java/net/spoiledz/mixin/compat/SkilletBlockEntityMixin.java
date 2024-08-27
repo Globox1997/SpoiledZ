@@ -3,8 +3,6 @@ package net.spoiledz.mixin.compat;
 import java.util.List;
 import java.util.Optional;
 
-import com.nhoryzon.mc.farmersdelight.entity.block.SkilletBlockEntity;
-import com.nhoryzon.mc.farmersdelight.entity.block.SyncedBlockEntity;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,6 +18,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.spoiledz.util.SpoiledUtil;
+import vectorwing.farmersdelight.common.block.entity.SkilletBlockEntity;
+import vectorwing.farmersdelight.common.block.entity.SyncedBlockEntity;
 
 @SuppressWarnings("rawtypes")
 @Mixin(SkilletBlockEntity.class)
@@ -29,8 +29,10 @@ public abstract class SkilletBlockEntityMixin extends SyncedBlockEntity {
         super(type, pos, state);
     }
 
-    @Inject(method = "cookAndOutputItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z"), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void cookAndOutputItemsMixin(ItemStack cookingStack, CallbackInfo info, SimpleInventory wrapper, Optional recipe, ItemStack resultStack, Direction direction, ItemEntity entity) {
-        SpoiledUtil.setItemStackSpoilage(this.world, entity.getStack(), List.of(cookingStack));
-    }
+    // Requires sources jar
+
+//    @Inject(method = "cookAndOutputItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z"), locals = LocalCapture.CAPTURE_FAILSOFT)
+//    private void cookAndOutputItemsMixin(ItemStack cookingStack, CallbackInfo info, SimpleInventory wrapper, Optional recipe, ItemStack resultStack, Direction direction, ItemEntity entity) {
+//        SpoiledUtil.setItemStackSpoilage(this.world, entity.getStack(), List.of(cookingStack));
+//    }
 }

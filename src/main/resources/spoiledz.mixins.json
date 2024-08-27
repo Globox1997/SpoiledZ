@@ -18,6 +18,7 @@
     "FishingBobberEntityMixin",
     "ItemStackMixin",
     "CakeBlockMixin",
+    "PlayerEntityMixin",
     "compat.JuicerBlockEntityMixin",
     "compat.SkilletItemMixin",
     "compat.SkilletBlockEntityMixin",

@@ -2,27 +2,29 @@ package net.spoiledz.init;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.spoiledz.util.SpoiledUtil;
 
 @Environment(EnvType.CLIENT)
-public class ModelProviderInit {
+public class ModelInit {
 
     private static final List<Item> spoiledItems = new ArrayList<Item>();
     private static final List<Identifier> extraItemIdentifiers = new ArrayList<Identifier>();
     private static final List<String> extraItemIds = List.of("minecraft:wheat", "minecraft:egg", "minecraft:milk_bucket", "minecraft:honey_bottle", "minecraft:cake");
 
     public static void init() {
-        extraItemIds.forEach((id) -> extraItemIdentifiers.add(new Identifier(id)));
+        extraItemIds.forEach((id) -> extraItemIdentifiers.add(Identifier.of(id)));
 
         Registries.ITEM.forEach((item) -> {
-            if (item.isFood() || extraItemIdentifiers.contains(Registries.ITEM.getId(item))) {
+            if (item.getComponents().get(DataComponentTypes.FOOD) != null || extraItemIdentifiers.contains(Registries.ITEM.getId(item))) {
                 spoiledItems.add(item);
             }
         });
@@ -34,14 +36,14 @@ public class ModelProviderInit {
         // cooked_rabbit, rabbit_stew, mutton, cooked_mutton, chorus_fruit, beetroot, beetroot_soup, suspicious_stew, sweet_berries, glow_berries, honey_bottle]
 
         RegistryEntryAddedCallback.event(Registries.ITEM).register((rawId, id, item) -> {
-            if (item.isFood() || extraItemIdentifiers.contains(id)) {
+            if (item.getComponents().get(DataComponentTypes.FOOD) != null || extraItemIdentifiers.contains(id)) {
                 registerModelPredicateProvider(item);
             }
         });
     }
 
     private static void registerModelPredicateProvider(Item item) {
-        ModelPredicateProviderRegistry.register(item, new Identifier("spoiled"), (stack, world, entity, seed) -> {
+        ModelPredicateProviderRegistry.register(item, Identifier.of("spoiled"), (stack, world, entity, seed) -> {
             if (world != null) {
                 return (float) (SpoiledUtil.getSpoilingTime(world, stack) / 4f);
             } else if (entity != null) {

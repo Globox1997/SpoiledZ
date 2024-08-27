@@ -38,21 +38,21 @@ public abstract class CakeBlockMixin extends Block {
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
-        SpoiledUtil.FoodBlockMap.onPlacedFoodBlock(world, pos, state, itemStack);
+        SpoiledUtil.FoodBlockState.onPlacedFoodBlock(world, pos, state, itemStack);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         super.onStateReplaced(state, world, pos, newState, moved);
-        SpoiledUtil.FoodBlockMap.onRemovedFoodBlock(world, pos, newState);
+        SpoiledUtil.FoodBlockState.onRemovedFoodBlock(world, pos, newState);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         super.scheduledTick(state, world, pos, random);
-        SpoiledUtil.FoodBlockMap.scheduledTickFoodBlock(world, pos, state);
+        SpoiledUtil.FoodBlockState.scheduledTickFoodBlock(world, pos, state);
     }
 
 }

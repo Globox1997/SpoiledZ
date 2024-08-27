@@ -1,6 +1,6 @@
 ### Added:
 - 
 ### Fixed:
-- Fixed server crash
-### Changed:
 - 
+### Changed:
+- Updated to mc 1.21

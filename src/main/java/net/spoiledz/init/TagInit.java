@@ -7,8 +7,8 @@ import net.minecraft.util.Identifier;
 
 public class TagInit {
 
-    public static final TagKey<Item> SPOILING_ITEMS = TagKey.of(RegistryKeys.ITEM, new Identifier("spoiledz", "spoiling_items"));
-    public static final TagKey<Item> NON_SPOILING_ITEMS = TagKey.of(RegistryKeys.ITEM, new Identifier("spoiledz", "non_spoiling_items"));
+    public static final TagKey<Item> SPOILING_ITEMS = TagKey.of(RegistryKeys.ITEM, Identifier.of("spoiledz", "spoiling_items"));
+    public static final TagKey<Item> NON_SPOILING_ITEMS = TagKey.of(RegistryKeys.ITEM, Identifier.of("spoiledz", "non_spoiling_items"));
 
     public static void init() {
     }

@@ -14,9 +14,19 @@ import net.spoiledz.util.SpoiledUtil;
 @Mixin(Item.class)
 public class ItemMixin {
 
-    @Inject(method = "onCraft", at = @At("HEAD"))
-    private void onCraftMixin(ItemStack stack, World world, PlayerEntity player, CallbackInfo info) {
-        SpoiledUtil.setItemStackSpoilage(world, stack, null);
+    @Inject(method = "onCraftByPlayer", at = @At("TAIL"))
+    private void onCraftByPlayerMixin(ItemStack stack, World world, PlayerEntity player, CallbackInfo info) {
+        if (!world.isClient() && !stack.isEmpty()) {
+            SpoiledUtil.setItemStackSpoilage(world, stack, null);
+        }
+    }
+
+
+    @Inject(method = "onCraft", at = @At("TAIL"))
+    private void onCraftMixin(ItemStack stack, World world, CallbackInfo info) {
+        if (!world.isClient() && !stack.isEmpty()) {
+            SpoiledUtil.setItemStackSpoilage(world, stack, null);
+        }
     }
 
 }
