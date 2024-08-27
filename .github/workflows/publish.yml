@@ -46,7 +46,8 @@ jobs:
           dependencies: |
             fabric-api | depends | *
             cloth-config | depends | *
-            fabric-seasons | depends | *
+            fabric-seasons | optional | *
+            serene-seasons | optional | *
 
           changelog-file: CHANGELOG.md
 
