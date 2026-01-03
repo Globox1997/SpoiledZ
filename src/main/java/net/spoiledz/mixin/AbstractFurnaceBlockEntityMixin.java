@@ -1,8 +1,13 @@
 package net.spoiledz.mixin;
 
-import java.util.List;
-
-import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.spoiledz.mixin.access.AbstractFurnaceBlockEntityAccessor;
+import net.spoiledz.util.SpoiledUtil;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -10,18 +15,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.spoiledz.mixin.access.AbstractFurnaceBlockEntityAccessor;
-import net.spoiledz.util.SpoiledUtil;
+import java.util.List;
 
 @Mixin(AbstractFurnaceBlockEntity.class)
 public class AbstractFurnaceBlockEntityMixin {
@@ -49,16 +44,16 @@ public class AbstractFurnaceBlockEntityMixin {
         SpoiledUtil.setItemStackSpoilage(world, blockEntity.getStack(2), List.of(((AbstractFurnaceBlockEntityMixin) (Object) blockEntity).getRecipeStack()));
     }
 
-    @Inject(method = "canAcceptRecipeOutput", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;areItemsAndComponentsEqual(Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemStack;)Z"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
-    private static void canAcceptRecipeOutputMixin(DynamicRegistryManager registryManager, @Nullable RecipeEntry<?> recipe, DefaultedList<ItemStack> slots, int count, CallbackInfoReturnable<Boolean> info, ItemStack itemStack, ItemStack itemStack2) {
-        if (ItemStack.areItemsEqual(itemStack, itemStack2) && SpoiledUtil.isSpoilable(slots.get(0)) && SpoiledUtil.isSpoilable(itemStack2)) {
-            if (!SpoiledUtil.isSpoilageEqual(slots.get(0), itemStack2)) {
-                info.setReturnValue(false);
-            } else if (itemStack2.getCount() < count && itemStack2.getCount() < itemStack2.getMaxCount()) {
-                info.setReturnValue(true);
-            }
-        }
-    }
+//    @Inject(method = "canAcceptRecipeOutput", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;areItemsAndComponentsEqual(Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemStack;)Z"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
+//    private static void canAcceptRecipeOutputMixin(DynamicRegistryManager registryManager, @Nullable RecipeEntry<?> recipe, DefaultedList<ItemStack> slots, int count, CallbackInfoReturnable<Boolean> info, ItemStack itemStack, ItemStack itemStack2) {
+//        if (ItemStack.areItemsEqual(itemStack, itemStack2) && SpoiledUtil.isSpoilable(slots.get(0)) && SpoiledUtil.isSpoilable(itemStack2)) {
+//            if (!SpoiledUtil.isSpoilageEqual(slots.get(0), itemStack2)) {
+//                info.setReturnValue(false);
+//            } else if (itemStack2.getCount() < count && itemStack2.getCount() < itemStack2.getMaxCount()) {
+//                info.setReturnValue(true);
+//            }
+//        }
+//    }
 
     @Unique
     private void setRecipeStack(ItemStack stack) {

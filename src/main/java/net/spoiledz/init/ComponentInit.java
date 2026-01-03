@@ -11,6 +11,7 @@ import java.util.function.UnaryOperator;
 public class ComponentInit {
 
     public static final ComponentType<SpoiledComponent> SPOILED = registerComponent("spoiled", builder -> builder.codec(SpoiledComponent.CODEC).packetCodec(SpoiledComponent.PACKET_CODEC));
+    public static final ComponentType<SpoiledComponent> POTTED = registerComponent("potted", builder -> builder.codec(SpoiledComponent.CODEC).packetCodec(SpoiledComponent.PACKET_CODEC));
   // Unused
     public static final ComponentType<BlockSpoiledComponent> BLOCK_SPOILED = registerComponent("block_spoiled", builder -> builder.codec(BlockSpoiledComponent.CODEC).packetCodec(BlockSpoiledComponent.PACKET_CODEC));
 

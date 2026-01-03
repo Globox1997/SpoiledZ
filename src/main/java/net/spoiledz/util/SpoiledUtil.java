@@ -31,64 +31,23 @@ public class SpoiledUtil {
     // 0 = 0%, 1=25%, 2=50%, 3=75%, 4=100%
     public static int getSpoilingTime(World world, ItemStack stack) {
         if (world != null && stack != null && stack.get(ComponentInit.SPOILED) != null) {
+
             String itemSeason = stack.get(ComponentInit.SPOILED).season();
             int itemYear = stack.get(ComponentInit.SPOILED).year();
 
-            int currentYear;
-            String currentSeason;
+            int returnSpoilage = (int) (SpoiledUtil.getSeasonsPassedBy(world, itemSeason, itemYear) / ((float) ConfigInit.CONFIG.seasonSpoilage / 4));
 
-            if (EventInit.isSereneSeasonsLoaded) {
-                currentYear = (int) (world.getTimeOfDay() / (SeasonHelper.getSeasonState(world).getSeasonDuration() * 4));
-                currentSeason = SeasonHelper.getSeasonState(world).getSeason().name();
-            } else {
-                currentYear = (int) (world.getTimeOfDay() / (FabricSeasons.getCurrentSeason(world).getSeasonLength() * 4));
-                currentSeason = FabricSeasons.getCurrentSeason(world).asString();
-            }
-
-            int yearDiff = currentYear - itemYear;
-
-            // Determine the number of seasons within the years that have passed
-            int seasonsPassed = 0;
-
-            int oldSeasonIndex;
-            int currentSeasonIndex;
-            if (EventInit.isSereneSeasonsLoaded) {
-                oldSeasonIndex = SpoiledZMain.SERENE_SEASONS.indexOf(itemSeason);
-                currentSeasonIndex = SpoiledZMain.SERENE_SEASONS.indexOf(currentSeason);
-            } else {
-                oldSeasonIndex = SpoiledZMain.FABRIC_SEASONS.indexOf(itemSeason);
-                currentSeasonIndex = SpoiledZMain.FABRIC_SEASONS.indexOf(currentSeason);
-            }
-
-            if (oldSeasonIndex != -1 && currentSeasonIndex != -1) {
-                if (yearDiff > 0) {
-                    seasonsPassed += yearDiff * 4;
-                    seasonsPassed += (currentSeasonIndex - oldSeasonIndex + 4) % 4;
-                } else if (yearDiff == 0) {
-                    seasonsPassed = (currentSeasonIndex - oldSeasonIndex + 4) % 4;
-                }
-            }
-            int returnSpoilage = (int) (seasonsPassed / ((float) ConfigInit.CONFIG.seasonSpoilage / 4));
-            return returnSpoilage > 4 ? 4 : returnSpoilage;
+            return Math.min(returnSpoilage, 4);
         } else {
             return -1;
         }
     }
 
     public static void setItemStackSpoilage(World world, ItemStack stack, @Nullable List<ItemStack> recipeStacks) {
-        if (!world.isClient && ((stack.get(DataComponentTypes.FOOD) != null || stack.isIn(TagInit.SPOILING_ITEMS)) && !stack.isIn(TagInit.NON_SPOILING_ITEMS))) {
+        if (!world.isClient() && isSpoilable(stack)) {
             if (recipeStacks != null && !recipeStacks.isEmpty() && !ConfigInit.CONFIG.freshCrafting) {
-
-                int year;
-                String season;
-
-                if (EventInit.isSereneSeasonsLoaded) {
-                    year = (int) (world.getTimeOfDay() / (SeasonHelper.getSeasonState(world).getSeasonDuration() * 4));
-                    season = SeasonHelper.getSeasonState(world).getSeason().name();
-                } else {
-                    year = (int) (world.getTimeOfDay() / (FabricSeasons.getCurrentSeason(world).getSeasonLength() * 4));
-                    season = FabricSeasons.getCurrentSeason(world).asString();
-                }
+                int year = SpoiledUtil.getCurrentYear(world);
+                String season = SpoiledUtil.getCurrentSeason(world);
 
                 for (ItemStack inputStack : recipeStacks) {
                     if (inputStack != null && !inputStack.isEmpty() && inputStack.get(ComponentInit.SPOILED) != null) {
@@ -109,20 +68,88 @@ public class SpoiledUtil {
                         }
                     }
                 }
+
                 stack.set(ComponentInit.SPOILED, new SpoiledComponent(season, year));
             } else if (!hasSpoilage(stack) || ConfigInit.CONFIG.freshCrafting) {
-                int year;
-                String season;
-                if (EventInit.isSereneSeasonsLoaded) {
-                    year = (int) (world.getTimeOfDay() / (SeasonHelper.getSeasonState(world).getSeasonDuration() * 4));
-                    season = SeasonHelper.getSeasonState(world).getSeason().name();
-                } else {
-                    year = (int) (world.getTimeOfDay() / (FabricSeasons.getCurrentSeason(world).getSeasonLength() * 4));
-                    season = FabricSeasons.getCurrentSeason(world).asString();
-                }
+                int year = SpoiledUtil.getCurrentYear(world);
+                String season = SpoiledUtil.getCurrentSeason(world);
+
                 stack.set(ComponentInit.SPOILED, new SpoiledComponent(season, year));
             }
         }
+    }
+
+    public static void setSeasonsPassedBy(ItemStack stack, int seasonsPassedBy) {
+        if (isSpoilable(stack)) {
+
+            String season = stack.get(ComponentInit.SPOILED).season();
+            int year = stack.get(ComponentInit.SPOILED).year();
+
+            int currentSeasonIndex;
+            if (EventInit.isSereneSeasonsLoaded) {
+                currentSeasonIndex = SpoiledZMain.SERENE_SEASONS.indexOf(season);
+            } else {
+                currentSeasonIndex = SpoiledZMain.FABRIC_SEASONS.indexOf(season);
+            }
+            if (year > 0) {
+                year += seasonsPassedBy / 4;
+            }
+            int newSeasonIndex = (currentSeasonIndex + seasonsPassedBy % 4) % 4;
+            if (EventInit.isSereneSeasonsLoaded) {
+                season = SpoiledZMain.SERENE_SEASONS.get(newSeasonIndex);
+            } else {
+                season = SpoiledZMain.FABRIC_SEASONS.get(newSeasonIndex);
+            }
+            stack.set(ComponentInit.SPOILED, new SpoiledComponent(season, year));
+        }
+    }
+
+    public static int getSeasonsPassedBy(World world, String storedSeason, int storedYear) {
+        int currentYear = SpoiledUtil.getCurrentYear(world);
+
+        int yearDiff = currentYear - storedYear;
+
+        int seasonsPassed = 0;
+
+        int oldSeasonIndex;
+        int currentSeasonIndex;
+        if (EventInit.isSereneSeasonsLoaded) {
+            oldSeasonIndex = SpoiledZMain.SERENE_SEASONS.indexOf(storedSeason);
+            currentSeasonIndex = SpoiledZMain.SERENE_SEASONS.indexOf(SpoiledUtil.getCurrentSeason(world));
+        } else {
+            oldSeasonIndex = SpoiledZMain.FABRIC_SEASONS.indexOf(storedSeason);
+            currentSeasonIndex = SpoiledZMain.FABRIC_SEASONS.indexOf(SpoiledUtil.getCurrentSeason(world));
+        }
+
+        if (oldSeasonIndex != -1 && currentSeasonIndex != -1) {
+            if (yearDiff > 0) {
+                seasonsPassed += yearDiff * 4;
+                seasonsPassed += (currentSeasonIndex - oldSeasonIndex + 4) % 4;
+            } else if (yearDiff == 0) {
+                seasonsPassed = (currentSeasonIndex - oldSeasonIndex + 4) % 4;
+            }
+        }
+        return seasonsPassed;
+    }
+
+    public static String getCurrentSeason(World world) {
+        String season;
+        if (EventInit.isSereneSeasonsLoaded) {
+            season = SeasonHelper.getSeasonState(world).getSeason().name();
+        } else {
+            season = FabricSeasons.getCurrentSeason(world).asString();
+        }
+        return season;
+    }
+
+    public static int getCurrentYear(World world) {
+        int year;
+        if (EventInit.isSereneSeasonsLoaded) {
+            year = (int) (world.getTimeOfDay() / (SeasonHelper.getSeasonState(world).getSeasonDuration() * 4));
+        } else {
+            year = (int) (world.getTimeOfDay() / (FabricSeasons.getCurrentSeason(world).getSeasonLength() * 4));
+        }
+        return year;
     }
 
     public static boolean hasSpoilage(ItemStack stack) {
@@ -134,57 +161,68 @@ public class SpoiledUtil {
     }
 
     public static boolean isSpoilageEqual(ItemStack itemStack, ItemStack itemStack2) {
-        if (itemStack != null && itemStack.get(ComponentInit.SPOILED) != null && itemStack2 != null && itemStack2.get(ComponentInit.SPOILED) != null) {
-            String itemSeason = itemStack.get(ComponentInit.SPOILED).season();
-            int itemYear = itemStack.get(ComponentInit.SPOILED).year();
+        if (itemStack != null && itemStack2 != null && isSpoilable(itemStack) && isSpoilable(itemStack2)) {
+            if (itemStack.get(ComponentInit.SPOILED) != null && itemStack2.get(ComponentInit.SPOILED) != null) {
+                String itemSeason = itemStack.get(ComponentInit.SPOILED).season();
+                int itemYear = itemStack.get(ComponentInit.SPOILED).year();
 
-            String item2Season = itemStack2.get(ComponentInit.SPOILED).season();
-            int item2Year = itemStack2.get(ComponentInit.SPOILED).year();
+                String item2Season = itemStack2.get(ComponentInit.SPOILED).season();
+                int item2Year = itemStack2.get(ComponentInit.SPOILED).year();
 
-            int seasonDifference;
+                int seasonDifference;
 
-            if (EventInit.isSereneSeasonsLoaded) {
-                seasonDifference = Math.abs(SpoiledZMain.SERENE_SEASONS.indexOf(item2Season) - SpoiledZMain.SERENE_SEASONS.indexOf(itemSeason));
-            } else {
-                seasonDifference = Math.abs(SpoiledZMain.FABRIC_SEASONS.indexOf(item2Season) - SpoiledZMain.FABRIC_SEASONS.indexOf(itemSeason));
-            }
-            int yearDifference = Math.abs(itemYear - item2Year);
-
-            if (yearDifference == 0 && seasonDifference < 2) {
-                return true;
-            }
-
-            if (yearDifference == 1) {
-                if (itemYear < item2Year) {
-                    if (EventInit.isSereneSeasonsLoaded) {
-                        seasonDifference = SpoiledZMain.SERENE_SEASONS.indexOf(item2Season) - SpoiledZMain.SERENE_SEASONS.indexOf(itemSeason);
-                    } else {
-                        seasonDifference = SpoiledZMain.FABRIC_SEASONS.indexOf(item2Season) - SpoiledZMain.FABRIC_SEASONS.indexOf(itemSeason);
-                    }
+                if (EventInit.isSereneSeasonsLoaded) {
+                    seasonDifference = Math.abs(SpoiledZMain.SERENE_SEASONS.indexOf(item2Season) - SpoiledZMain.SERENE_SEASONS.indexOf(itemSeason));
                 } else {
-                    if (EventInit.isSereneSeasonsLoaded) {
-                        seasonDifference = SpoiledZMain.SERENE_SEASONS.indexOf(itemSeason) - SpoiledZMain.SERENE_SEASONS.indexOf(item2Season);
-                    } else {
-                        seasonDifference = SpoiledZMain.FABRIC_SEASONS.indexOf(itemSeason) - SpoiledZMain.FABRIC_SEASONS.indexOf(item2Season);
-                    }
+                    seasonDifference = Math.abs(SpoiledZMain.FABRIC_SEASONS.indexOf(item2Season) - SpoiledZMain.FABRIC_SEASONS.indexOf(itemSeason));
                 }
-                if (seasonDifference < 0) {
-                    seasonDifference = yearDifference * 4 + seasonDifference;
-                }
-                if (seasonDifference < 2) {
+                int yearDifference = Math.abs(itemYear - item2Year);
+
+                if (yearDifference == 0 && seasonDifference < 2) {
                     return true;
                 }
 
-            }
-            if (yearDifference > 2) {
-                return true;
-            }
+                if (yearDifference == 1) {
+                    if (itemYear < item2Year) {
+                        if (EventInit.isSereneSeasonsLoaded) {
+                            seasonDifference = SpoiledZMain.SERENE_SEASONS.indexOf(item2Season) - SpoiledZMain.SERENE_SEASONS.indexOf(itemSeason);
+                        } else {
+                            seasonDifference = SpoiledZMain.FABRIC_SEASONS.indexOf(item2Season) - SpoiledZMain.FABRIC_SEASONS.indexOf(itemSeason);
+                        }
+                    } else {
+                        if (EventInit.isSereneSeasonsLoaded) {
+                            seasonDifference = SpoiledZMain.SERENE_SEASONS.indexOf(itemSeason) - SpoiledZMain.SERENE_SEASONS.indexOf(item2Season);
+                        } else {
+                            seasonDifference = SpoiledZMain.FABRIC_SEASONS.indexOf(itemSeason) - SpoiledZMain.FABRIC_SEASONS.indexOf(item2Season);
+                        }
+                    }
+                    if (seasonDifference < 0) {
+                        seasonDifference = yearDifference * 4 + seasonDifference;
+                    }
+                    if (seasonDifference < 2) {
+                        return true;
+                    }
 
-            return false;
-        } else {
-            return false;
+                }
+                if (yearDifference > 2) {
+                    return true;
+                }
+
+                return false;
+            } else {
+                if (itemStack.get(ComponentInit.SPOILED) != null && itemStack2.get(ComponentInit.SPOILED) == null) {
+                    return true;
+                }
+                // Maybe outcomment the following line cause admin item (non spoiled food) could get replicated with it
+                // If outcommented, delete SlotMixin
+                else if (itemStack.get(ComponentInit.SPOILED) == null && itemStack2.get(ComponentInit.SPOILED) != null) {
+                    return true;
+                }
+            }
         }
+        return false;
     }
+
 
     public static void onSeasonChange(ServerWorld serverWorld) {
         if ((int) serverWorld.getTimeOfDay() % 20 == 0 && serverWorld instanceof ServerWorldAccess serverWorldAccess) {
@@ -213,7 +251,7 @@ public class SpoiledUtil {
 
     public static class FoodBlockState extends PersistentState {
 
-        private HashMap<BlockPos, ItemStack> FOOD_BLOCK_MAP = new HashMap<BlockPos, ItemStack>();
+        private final HashMap<BlockPos, ItemStack> FOOD_BLOCK_MAP = new HashMap<BlockPos, ItemStack>();
 
         private final ServerWorld world;
 

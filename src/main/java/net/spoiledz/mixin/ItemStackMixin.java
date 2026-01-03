@@ -14,9 +14,9 @@ import net.spoiledz.util.SpoiledUtil;
 public class ItemStackMixin {
 
     @Inject(method = "areItemsAndComponentsEqual", at = @At("RETURN"), cancellable = true)
-    private static void canCombineMixin(ItemStack stack, ItemStack otherStack, CallbackInfoReturnable<Boolean> info) {
-        if (!info.getReturnValue() && stack.isOf(otherStack.getItem()) && (stack.get(DataComponentTypes.FOOD) != null || stack.isIn(TagInit.SPOILING_ITEMS)) && (otherStack.get(DataComponentTypes.FOOD) != null || otherStack.isIn(TagInit.SPOILING_ITEMS))
-                && SpoiledUtil.isSpoilageEqual(stack, otherStack)) {
+    private static void areItemsAndComponentsEqualMixin(ItemStack stack, ItemStack otherStack, CallbackInfoReturnable<Boolean> info) {
+        if (!info.getReturnValue() && stack.isOf(otherStack.getItem()) && (stack.get(DataComponentTypes.FOOD) != null || stack.isIn(TagInit.SPOILING_ITEMS))
+                && (otherStack.get(DataComponentTypes.FOOD) != null || otherStack.isIn(TagInit.SPOILING_ITEMS)) && SpoiledUtil.isSpoilageEqual(stack, otherStack)) {
             info.setReturnValue(true);
         }
     }

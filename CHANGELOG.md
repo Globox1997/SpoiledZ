@@ -1,6 +1,6 @@
 ### Added:
-- 
+- Added decorated pot freezing food
 ### Fixed:
 - 
 ### Changed:
-- Updated to mc 1.21
+- 
