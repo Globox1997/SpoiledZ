@@ -2,8 +2,9 @@ package net.spoiledz.mixin.compat;
 
 import java.util.List;
 
-import net.satisfy.vinery.block.entity.ApplePressBlockEntity;
-import net.satisfy.vinery.recipe.ApplePressRecipe;
+//import net.satisfy.vinery.block.entity.ApplePressBlockEntity;
+//import net.satisfy.vinery.recipe.ApplePressRecipe;
+import net.satisfy.vinery.core.block.entity.ApplePressBlockEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

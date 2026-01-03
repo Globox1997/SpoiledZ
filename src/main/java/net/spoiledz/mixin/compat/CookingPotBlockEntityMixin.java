@@ -24,10 +24,10 @@ import java.util.List;
 @Mixin(CookingPotBlockEntity.class)
 public abstract class CookingPotBlockEntityMixin extends SyncedBlockEntity {
 
-    @Shadow
-    @Mutable
-    @Final
-    private DefaultedList<ItemStack> inventory;
+//    @Shadow
+//    @Mutable
+//    @Final
+//    private DefaultedList<ItemStack> inventory;
 
     // Required sources jar
 
