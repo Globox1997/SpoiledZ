@@ -9,9 +9,9 @@
     "SpigotDE"
   ],
   "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/environmentz",
-    "sources": "https://github.com/Globox1997/EnvironmentZ",
-    "issues": "https://github.com/Globox1997/EnvironmentZ/issues"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/spoiledz",
+    "sources": "https://github.com/Globox1997/SpoiledZ",
+    "issues": "https://github.com/Globox1997/SpoiledZ/issues"
   },
   "license": "MIT",
   "icon": "assets/spoiledz/icon.png",
