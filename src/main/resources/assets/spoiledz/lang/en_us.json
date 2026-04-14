@@ -1,5 +1,9 @@
 {
     "item.spoiledz.tooltip": "Spoiled %s%%",
+
+    "tag.item.spoiledz.spoiling_items": "Spoiling Items",
+    "tag.item.spoiledz.non_spoiling_items": "Non Spoiling Items",
+
     "text.autoconfig.spoiledz.title": "SpoiledZ Config",
     "text.autoconfig.spoiledz.option.freshCrafting": "Fresh Crafting",
     "text.autoconfig.spoiledz.option.effectChance": "Effect Chance",

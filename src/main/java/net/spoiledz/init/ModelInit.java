@@ -1,8 +1,5 @@
 package net.spoiledz.init;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
@@ -12,6 +9,9 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.spoiledz.util.SpoiledUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class ModelInit {
@@ -28,9 +28,7 @@ public class ModelInit {
                 spoiledItems.add(item);
             }
         });
-        spoiledItems.forEach((item) -> {
-            registerModelPredicateProvider(item);
-        });
+        spoiledItems.forEach(ModelInit::registerModelPredicateProvider);
         // [apple, mushroom_stew, wheat, bread, porkchop, cooked_porkchop, golden_apple, enchanted_golden_apple, milk_bucket, egg, cod, salmon, tropical_fish, pufferfish, cooked_cod, cooked_salmon,
         // cookie, melon_slice, dried_kelp, beef, cooked_beef, chicken, cooked_chicken, rotten_flesh, spider_eye, carrot, potato, baked_potato, poisonous_potato, golden_carrot, pumpkin_pie, rabbit,
         // cooked_rabbit, rabbit_stew, mutton, cooked_mutton, chorus_fruit, beetroot, beetroot_soup, suspicious_stew, sweet_berries, glow_berries, honey_bottle]
@@ -45,9 +43,9 @@ public class ModelInit {
     private static void registerModelPredicateProvider(Item item) {
         ModelPredicateProviderRegistry.register(item, Identifier.of("spoiled"), (stack, world, entity, seed) -> {
             if (world != null) {
-                return (float) (SpoiledUtil.getSpoilingTime(world, stack) / 4f);
+                return (SpoiledUtil.getSpoilingTime(world, stack) / 4f);
             } else if (entity != null) {
-                return (float) (SpoiledUtil.getSpoilingTime(entity.getWorld(), stack) / 4f);
+                return (SpoiledUtil.getSpoilingTime(entity.getWorld(), stack) / 4f);
             } else {
                 return 0f;
             }

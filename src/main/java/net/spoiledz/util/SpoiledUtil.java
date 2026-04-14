@@ -251,7 +251,7 @@ public class SpoiledUtil {
 
     public static class FoodBlockState extends PersistentState {
 
-        private final HashMap<BlockPos, ItemStack> FOOD_BLOCK_MAP = new HashMap<BlockPos, ItemStack>();
+        private final HashMap<BlockPos, ItemStack> FOOD_BLOCK_MAP = new HashMap<>();
 
         private final ServerWorld world;
 
@@ -260,7 +260,7 @@ public class SpoiledUtil {
         }
 
         public static PersistentState.Type<FoodBlockState> getPersistentStateType(ServerWorld world) {
-            return new PersistentState.Type<FoodBlockState>(() -> new FoodBlockState(world), (nbt, registryLookup) -> fromNbt(world, (NbtCompound) nbt), null);
+            return new PersistentState.Type<>(() -> new FoodBlockState(world), (nbt, registryLookup) -> fromNbt(world, (NbtCompound) nbt), null);
         }
 
         public ServerWorld getWorld() {
