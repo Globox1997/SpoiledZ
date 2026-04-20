@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "adventurez:item/raw_venison"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "spoiled": 1
+      },
+      "model": "spoiledz:item/raw_venison"
+    }
+  ]
+}

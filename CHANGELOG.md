@@ -1,5 +1,7 @@
 ### Added:
-- Added decorated pot freezing food
+- Added adventurez compat
+- Added farmz compat
+- Added oblivion compat
 ### Fixed:
 - 
 ### Changed:

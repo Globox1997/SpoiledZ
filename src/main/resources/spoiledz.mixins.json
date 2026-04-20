@@ -32,7 +32,6 @@
     "compat.StoveBlockEntityMixin"
   ],
   "client": [
-    "client.ItemRendererMixin",
     "client.ItemStackMixin"
   ],
   "injectors": {

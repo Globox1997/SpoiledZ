@@ -3,10 +3,8 @@ package net.spoiledz;
 import java.util.List;
 
 import net.fabricmc.api.ModInitializer;
-import net.spoiledz.init.ComponentInit;
-import net.spoiledz.init.ConfigInit;
-import net.spoiledz.init.EventInit;
-import net.spoiledz.init.TagInit;
+import net.minecraft.util.Identifier;
+import net.spoiledz.init.*;
 
 public class SpoiledZMain implements ModInitializer {
 
@@ -19,6 +17,11 @@ public class SpoiledZMain implements ModInitializer {
         ComponentInit.init();
         TagInit.init();
         EventInit.init();
+        CompatInit.init();
+    }
+
+    public static Identifier identifierOf(String name) {
+        return Identifier.of("spoiledz", name);
     }
 
 }

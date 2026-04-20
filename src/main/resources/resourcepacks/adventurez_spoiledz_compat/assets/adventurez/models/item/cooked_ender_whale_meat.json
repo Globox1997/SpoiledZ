@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "adventurez:item/cooked_ender_whale_meat"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "spoiled": 1
+      },
+      "model": "spoiledz:item/cooked_ender_whale_meat"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "oblivion:item/shlamb"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "spoiled": 1
+      },
+      "model": "spoiledz:item/shlamb"
+    }
+  ]
+}
