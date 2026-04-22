@@ -126,7 +126,13 @@ public class SpoiledUtil {
                 seasonsPassed += yearDiff * 4;
                 seasonsPassed += (currentSeasonIndex - oldSeasonIndex + 4) % 4;
             } else if (yearDiff == 0) {
-                seasonsPassed = (currentSeasonIndex - oldSeasonIndex + 4) % 4;
+                int diff = currentSeasonIndex - oldSeasonIndex;
+                // Negative means the stored season hasn't been reached yet in this year.
+                if (diff < 0) {
+                    seasonsPassed = 0;
+                } else {
+                    seasonsPassed = diff;
+                }
             }
         }
         return seasonsPassed;
