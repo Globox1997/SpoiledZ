@@ -2,34 +2,43 @@ package net.spoiledz.mixin.compat;
 
 import java.util.List;
 
-
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.spoiledz.util.SpoiledUtil;
 import vectorwing.farmersdelight.common.block.entity.StoveBlockEntity;
+import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
 @Mixin(StoveBlockEntity.class)
-public abstract class StoveBlockEntityMixin extends BlockEntity {
+public class StoveBlockEntityMixin {
 
-    public StoveBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+    @Shadow(remap = false)
+    @Final
+    private int[] cookingTimes;
+
+    @Shadow(remap = false)
+    @Final
+    private int[] cookingTimesTotal;
+
+    @ModifyArg(method = "cookAndOutputItems", at = @At(value = "INVOKE", target = "Lvectorwing/farmersdelight/common/utility/ItemUtils;spawnItemEntity(Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;DDDDDD)V"), index = 1, require = 0)
+    private ItemStack cookAndOutputItemsMixin(ItemStack stack) {
+        StoveBlockEntity entity = (StoveBlockEntity) (Object) this;
+        World world = entity.getWorld();
+        if (world != null) {
+            ItemStackHandler inventory = entity.getInventory();
+            for (int i = 0; i < inventory.getSlotCount(); i++) {
+                ItemStack inputStack = inventory.getStackInSlot(i);
+                if (!inputStack.isEmpty() && this.cookingTimes[i] >= this.cookingTimesTotal[i]) {
+                    SpoiledUtil.setItemStackSpoilage(world, stack, List.of(inputStack));
+                    break;
+                }
+            }
+        }
+        return stack;
     }
-
-    // Requires sources jar
-
-//    @Inject(method = "cookAndDrop", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z"), locals = LocalCapture.CAPTURE_FAILSOFT)
-//    private void cookAndDropMixin(CallbackInfo info, int i, ItemStack itemstack, Inventory cookInventory, ItemStack result, ItemEntity entity) {
-//        SpoiledUtil.setItemStackSpoilage(world, entity.getStack(), List.of(itemstack));
-//    }
 }

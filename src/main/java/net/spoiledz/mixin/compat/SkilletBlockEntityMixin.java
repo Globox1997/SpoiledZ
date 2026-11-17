@@ -1,38 +1,26 @@
 package net.spoiledz.mixin.compat;
 
 import java.util.List;
-import java.util.Optional;
-
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 import net.spoiledz.util.SpoiledUtil;
 import vectorwing.farmersdelight.common.block.entity.SkilletBlockEntity;
-import vectorwing.farmersdelight.common.block.entity.SyncedBlockEntity;
 
-@SuppressWarnings("rawtypes")
 @Mixin(SkilletBlockEntity.class)
-public abstract class SkilletBlockEntityMixin extends SyncedBlockEntity {
+public class SkilletBlockEntityMixin {
 
-    public SkilletBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+    @ModifyArg(method = "cookAndOutputItems", at = @At(value = "INVOKE", target = "Lvectorwing/farmersdelight/common/utility/ItemUtils;spawnItemEntity(Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;DDDDDD)V"), index = 1, require = 0)
+    private ItemStack cookAndOutputItemsMixin(ItemStack stack) {
+        SkilletBlockEntity entity = (SkilletBlockEntity) (Object) this;
+        World world = entity.getWorld();
+        if (world != null) {
+            SpoiledUtil.setItemStackSpoilage(world, stack, List.of(entity.getStoredStack()));
+        }
+        return stack;
     }
-
-    // Requires sources jar
-
-//    @Inject(method = "cookAndOutputItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;spawnEntity(Lnet/minecraft/entity/Entity;)Z"), locals = LocalCapture.CAPTURE_FAILSOFT)
-//    private void cookAndOutputItemsMixin(ItemStack cookingStack, CallbackInfo info, SimpleInventory wrapper, Optional recipe, ItemStack resultStack, Direction direction, ItemEntity entity) {
-//        SpoiledUtil.setItemStackSpoilage(this.world, entity.getStack(), List.of(cookingStack));
-//    }
 }

@@ -7,6 +7,7 @@ import com.ianm1647.expandeddelight.block.entity.JuicerBlockEntity;
 
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,7 +22,8 @@ import net.spoiledz.util.SpoiledUtil;
 @Mixin(JuicerBlockEntity.class)
 public class JuicerBlockEntityMixin {
 
-    private List<ItemStack> recipeStacks = new ArrayList<ItemStack>();
+    @Unique
+    private final List<ItemStack> recipeStacks = new ArrayList<ItemStack>();
 
     @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;removeStack(II)Lnet/minecraft/item/ItemStack;", ordinal = 0))
     private static void stackCraftItemMixin(JuicerBlockEntity entity, CallbackInfo info) {
@@ -35,9 +37,12 @@ public class JuicerBlockEntityMixin {
 
     @Inject(method = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;hasRecipe(Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;)Z", at = @At(value = "RETURN"), cancellable = true, remap = false)
     private static void hasRecipeMixin(JuicerBlockEntity entity, CallbackInfoReturnable<Boolean> info) {
-        if (info.getReturnValue()) {
-            if (!entity.getStack(3).isEmpty() && ItemStack.areItemsEqual(entity.getStack(3), entity.getStack(0)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(0))) {
-                info.setReturnValue(false);
+        if (info.getReturnValue() && !entity.getStack(3).isEmpty() && SpoiledUtil.isSpoilable(entity.getStack(3))) {
+            for (int i = 0; i < 2; i++) {
+                if (!entity.getStack(i).isEmpty() && SpoiledUtil.isSpoilable(entity.getStack(i)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(i))) {
+                    info.setReturnValue(false);
+                    return;
+                }
             }
         }
     }
@@ -49,12 +54,14 @@ public class JuicerBlockEntityMixin {
         }
     }
 
+    @Unique
     private void setRecipeStacks(List<ItemStack> stacks) {
         recipeStacks.clear();
         recipeStacks.addAll(stacks);
     }
 
     @Nullable
+    @Unique
     private List<ItemStack> getRecipeStacks() {
         return this.recipeStacks;
     }

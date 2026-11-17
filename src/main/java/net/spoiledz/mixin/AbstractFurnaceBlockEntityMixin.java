@@ -3,19 +3,19 @@ package net.spoiledz.mixin;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.spoiledz.mixin.access.AbstractFurnaceBlockEntityAccessor;
+import net.spoiledz.util.SpoiledComponent;
 import net.spoiledz.util.SpoiledUtil;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(AbstractFurnaceBlockEntity.class)
@@ -25,9 +25,6 @@ public class AbstractFurnaceBlockEntityMixin {
     @Nullable
     @Unique
     private ItemStack recipeStack = null;
-
-    @Shadow
-    protected DefaultedList<ItemStack> inventory = DefaultedList.ofSize(3, ItemStack.EMPTY);
 
     // No world instance given :/
     // @Inject(method = "craftRecipe", at = @At(value = "INVOKE", target = ""), locals = LocalCapture.PRINT)
@@ -41,7 +38,15 @@ public class AbstractFurnaceBlockEntityMixin {
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/AbstractFurnaceBlockEntity;setLastRecipe(Lnet/minecraft/recipe/RecipeEntry;)V"))
     private static void tickMixin(World world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo info) {
-        SpoiledUtil.setItemStackSpoilage(world, blockEntity.getStack(2), List.of(((AbstractFurnaceBlockEntityMixin) (Object) blockEntity).getRecipeStack()));
+        ItemStack outputStack = blockEntity.getStack(2);
+        SpoiledComponent previousSpoiledComponent = SpoiledUtil.getSpoiledComponent(outputStack);
+        List<ItemStack> recipeStacks = new ArrayList<>();
+        ItemStack recipeStack = ((AbstractFurnaceBlockEntityMixin) (Object) blockEntity).getRecipeStack();
+        if (recipeStack != null) {
+            recipeStacks.add(recipeStack);
+        }
+        SpoiledUtil.setItemStackSpoilage(world, outputStack, recipeStacks);
+        SpoiledUtil.keepOlderSpoilage(outputStack, previousSpoiledComponent);
     }
 
 //    @Inject(method = "canAcceptRecipeOutput", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;areItemsAndComponentsEqual(Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemStack;)Z"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
