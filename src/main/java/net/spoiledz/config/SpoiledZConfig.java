@@ -18,4 +18,11 @@ public class SpoiledZConfig implements ConfigData {
     @Comment("In ticks")
     public int effectDuration = 400;
 
+    @Override
+    public void validatePostLoad() {
+        this.seasonSpoilage = Math.max(1, this.seasonSpoilage);
+        this.effectChance = Math.max(0, Math.min(100, this.effectChance));
+        this.effectDuration = Math.max(0, this.effectDuration);
+    }
+
 }

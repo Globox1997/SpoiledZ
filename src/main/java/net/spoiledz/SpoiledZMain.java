@@ -13,6 +13,9 @@ public class SpoiledZMain implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        if (!EventInit.isSereneSeasonsLoaded && !EventInit.isFabricSeasonsLoaded) {
+            throw new IllegalStateException("SpoiledZ requires Fabric Seasons or Serene Seasons to be installed");
+        }
         ConfigInit.init();
         ComponentInit.init();
         TagInit.init();
