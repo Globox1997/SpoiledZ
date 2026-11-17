@@ -10,7 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodConstants;
@@ -44,9 +44,9 @@ public abstract class CakeBlockMixin extends Block {
     }
 
     @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
-    private void onUseWithItemMixin(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<ItemInteractionResult> info) {
+    private void onUseWithItemMixin(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> info) {
         if (stack.is(ItemTags.CANDLES) && state.hasProperty(SpoiledUtil.SPOILED) && state.getValue(SpoiledUtil.SPOILED)) {
-            info.setReturnValue(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
+            info.setReturnValue(InteractionResult.TRY_WITH_EMPTY_HAND);
         }
     }
 
@@ -72,11 +72,10 @@ public abstract class CakeBlockMixin extends Block {
         SpoiledUtil.FoodBlockState.onPlacedFoodBlock(world, pos, state, itemStack);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
-        super.onRemove(state, world, pos, newState, moved);
-        SpoiledUtil.FoodBlockState.onRemovedFoodBlock(world, pos, newState);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, world, pos, movedByPiston);
+        SpoiledUtil.FoodBlockState.onRemovedFoodBlock(world, pos, world.getBlockState(pos));
     }
 
 }

@@ -14,9 +14,9 @@ import net.spoiledz.util.SpoiledUtil;
 public class ItemMixin {
 
     @Inject(method = "onCraftedBy", at = @At("TAIL"))
-    private void onCraftByPlayerMixin(ItemStack stack, Level world, Player player, CallbackInfo info) {
-        if (!world.isClientSide() && !stack.isEmpty()) {
-            SpoiledUtil.setItemStackSpoilage(world, stack, null);
+    private void onCraftByPlayerMixin(ItemStack stack, Player player, CallbackInfo info) {
+        if (!player.level().isClientSide() && !stack.isEmpty()) {
+            SpoiledUtil.setItemStackSpoilage(player.level(), stack, null);
         }
     }
 

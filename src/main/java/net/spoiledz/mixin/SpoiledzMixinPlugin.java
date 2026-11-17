@@ -22,14 +22,8 @@ public class SpoiledzMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.contains("JuicerBlockEntityMixin") && !FabricLoader.getInstance().isModLoaded("expandeddelight")) {
-            return false;
-        }
         if ((mixinClassName.contains("CookingPotBlockEntityMixin") || mixinClassName.contains("CuttingBoardBlockEntityMixin") || mixinClassName.contains("SkilletBlockEntityMixin")
                 || mixinClassName.contains("SkilletItemMixin") || mixinClassName.contains("StoveBlockEntityMixin")) && !FabricLoader.getInstance().isModLoaded("farmersdelight")) {
-            return false;
-        }
-        if (mixinClassName.contains("ApplePressBlockEntityMixin") && !FabricLoader.getInstance().isModLoaded("vinery")) {
             return false;
         }
 

@@ -1,16 +1,20 @@
 package net.spoiledz.util;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -25,16 +29,17 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.spoiledz.SpoiledZMain;
 import net.spoiledz.access.ServerWorldAccess;
+import net.spoiledz.mixin.access.DataComponentPatchAccessor;
 import net.spoiledz.init.ComponentInit;
 import net.spoiledz.init.ConfigInit;
-import net.spoiledz.init.EventInit;
 import net.spoiledz.init.TagInit;
 import org.jetbrains.annotations.Nullable;
 
-import io.github.lucaargolo.seasons.FabricSeasons;
 import sereneseasons.api.season.SeasonHelper;
 
 public class SpoiledUtil {
@@ -218,7 +223,7 @@ public class SpoiledUtil {
     }
 
     public static List<String> getSeasons() {
-        return EventInit.isSereneSeasonsLoaded ? SpoiledZMain.SERENE_SEASONS : SpoiledZMain.FABRIC_SEASONS;
+        return SpoiledZMain.SERENE_SEASONS;
     }
 
     public static int getSeasonIndex(String season) {
@@ -263,24 +268,13 @@ public class SpoiledUtil {
 
     private static int calculateCurrentSeasonCount(Level world) {
         int seasonIndex = Math.max(0, getSeasonIndex(getCurrentSeason(world)));
-        long seasonLength;
-        if (EventInit.isSereneSeasonsLoaded) {
-            seasonLength = SeasonHelper.getSeasonState(world).getSeasonDuration();
-        } else {
-            seasonLength = FabricSeasons.getCurrentSeason(world).getSeasonLength();
-        }
-        double estimatedSeasonCount = seasonLength > 0 ? world.getDayTime() / (double) seasonLength : 0.0D;
+        long seasonLength = SeasonHelper.getSeasonState(world).getSeasonDuration();
+        double estimatedSeasonCount = seasonLength > 0 ? world.getOverworldClockTime() / (double) seasonLength : 0.0D;
         return seasonIndex + 4 * (int) Math.round((estimatedSeasonCount - seasonIndex) / 4.0D);
     }
 
     public static String getCurrentSeason(Level world) {
-        String season;
-        if (EventInit.isSereneSeasonsLoaded) {
-            season = SeasonHelper.getSeasonState(world).getSeason().name();
-        } else {
-            season = FabricSeasons.getCurrentSeason(world).getSerializedName();
-        }
-        return season;
+        return SeasonHelper.getSeasonState(world).getSeason().name();
     }
 
     public static int getCurrentYear(Level world) {
@@ -299,22 +293,26 @@ public class SpoiledUtil {
         return type == ComponentInit.SPOILED || type == ComponentInit.POTTED || type == ComponentInit.LEGACY_SPOILED || type == ComponentInit.LEGACY_POTTED;
     }
 
+    private static Map<DataComponentType<?>, Object> getPatchMap(ItemStack stack) {
+        return ((DataComponentPatchAccessor) (Object) stack.getComponentsPatch()).getMap();
+    }
+
     public static boolean areComponentsEqualIgnoringSpoilage(ItemStack itemStack, ItemStack itemStack2) {
-        DataComponentPatch changes = itemStack.getComponentsPatch();
-        DataComponentPatch changes2 = itemStack2.getComponentsPatch();
+        Map<DataComponentType<?>, Object> changes = getPatchMap(itemStack);
+        Map<DataComponentType<?>, Object> changes2 = getPatchMap(itemStack2);
         int count = 0;
-        for (Map.Entry<DataComponentType<?>, Optional<?>> entry : changes.entrySet()) {
+        for (Map.Entry<DataComponentType<?>, Object> entry : changes.entrySet()) {
             if (isSpoilageComponent(entry.getKey())) {
                 continue;
             }
-            if (!entry.getValue().equals(changes2.get(entry.getKey()))) {
+            if (!changes2.containsKey(entry.getKey()) || !Objects.equals(entry.getValue(), changes2.get(entry.getKey()))) {
                 return false;
             }
             count++;
         }
         int count2 = 0;
-        for (Map.Entry<DataComponentType<?>, Optional<?>> entry : changes2.entrySet()) {
-            if (!isSpoilageComponent(entry.getKey())) {
+        for (DataComponentType<?> type : changes2.keySet()) {
+            if (!isSpoilageComponent(type)) {
                 count2++;
             }
         }
@@ -323,9 +321,9 @@ public class SpoiledUtil {
 
     public static int hashComponentsIgnoringSpoilage(ItemStack stack) {
         int hash = 0;
-        for (Map.Entry<DataComponentType<?>, Optional<?>> entry : stack.getComponentsPatch().entrySet()) {
+        for (Map.Entry<DataComponentType<?>, Object> entry : getPatchMap(stack).entrySet()) {
             if (!isSpoilageComponent(entry.getKey())) {
-                hash += entry.hashCode();
+                hash += System.identityHashCode(entry.getKey()) ^ Objects.hashCode(entry.getValue());
             }
         }
         return hash;
@@ -359,7 +357,7 @@ public class SpoiledUtil {
             return original;
         }
         float factor = getSpoiledFoodFactor(spoiledTime);
-        return new FoodProperties((int) (original.nutrition() * factor), original.saturation() * factor, original.canAlwaysEat(), original.eatSeconds(), original.usingConvertsTo(), original.effects());
+        return new FoodProperties((int) (original.nutrition() * factor), original.saturation() * factor, original.canAlwaysEat());
     }
 
     public static void applySpoiledEffects(LivingEntity livingEntity, int spoiledTime) {
@@ -369,7 +367,7 @@ public class SpoiledUtil {
         if (spoiledTime == 3 && livingEntity.level().getRandom().nextFloat() < (float) (ConfigInit.CONFIG.effectChance / 100f)) {
             livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) (ConfigInit.CONFIG.effectDuration * 0.66f), 1));
         } else if (spoiledTime >= 4) {
-            livingEntity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, ConfigInit.CONFIG.effectDuration / 2, 0));
+            livingEntity.addEffect(new MobEffectInstance(MobEffects.NAUSEA, ConfigInit.CONFIG.effectDuration / 2, 0));
             livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, ConfigInit.CONFIG.effectDuration, 1));
             if (livingEntity.level().getRandom().nextFloat() < 0.05f) {
                 livingEntity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, ConfigInit.CONFIG.effectDuration / 3, 0));
@@ -379,74 +377,67 @@ public class SpoiledUtil {
 
     public static class FoodBlockState extends SavedData {
 
-        private static final String ID = "spoiledz_food_blocks";
-        private static final String LEGACY_ID = "food_block_map";
+        private record FoodBlock(BlockPos pos, SpoiledComponent spoiled) {
+            private static final Codec<FoodBlock> CODEC = RecordCodecBuilder.create(instance -> instance
+                    .group(BlockPos.CODEC.fieldOf("pos").forGetter(FoodBlock::pos), SpoiledComponent.CODEC.fieldOf("spoiled").forGetter(FoodBlock::spoiled))
+                    .apply(instance, FoodBlock::new));
+        }
+
+        private static final Codec<FoodBlockState> CODEC = FoodBlock.CODEC.listOf().fieldOf("food_blocks").codec().xmap(FoodBlockState::new,
+                foodBlockState -> foodBlockState.FOOD_BLOCK_MAP.entrySet().stream().map(entry -> new FoodBlock(entry.getKey(), entry.getValue())).toList());
+
+        public static final SavedDataType<FoodBlockState> TYPE = new SavedDataType<>(SpoiledZMain.identifierOf("food_blocks"), FoodBlockState::new, CODEC, null);
+
+        private static final List<String> LEGACY_FILES = List.of("spoiledz_food_blocks.dat", "food_block_map.dat");
 
         private final HashMap<BlockPos, SpoiledComponent> FOOD_BLOCK_MAP = new HashMap<>();
 
-        private final ServerLevel world;
-
-        public FoodBlockState(ServerLevel world) {
-            this.world = world;
+        public FoodBlockState() {
         }
 
-        public static SavedData.Factory<FoodBlockState> getPersistentStateType(ServerLevel world) {
-            return new SavedData.Factory<>(() -> new FoodBlockState(world), (nbt, registryLookup) -> fromNbt(world, nbt), null);
+        private FoodBlockState(List<FoodBlock> foodBlocks) {
+            for (FoodBlock foodBlock : foodBlocks) {
+                this.FOOD_BLOCK_MAP.put(foodBlock.pos(), foodBlock.spoiled());
+            }
         }
 
         public static FoodBlockState getOrCreate(ServerLevel world) {
-            DimensionDataStorage persistentStateManager = world.getDataStorage();
-            SavedData.Factory<FoodBlockState> type = getPersistentStateType(world);
-            FoodBlockState foodBlockState = persistentStateManager.get(type, ID);
+            SavedDataStorage dataStorage = world.getDataStorage();
+            FoodBlockState foodBlockState = dataStorage.get(TYPE);
             if (foodBlockState == null) {
-                foodBlockState = persistentStateManager.computeIfAbsent(type, ID);
-                FoodBlockState legacyFoodBlockState = persistentStateManager.get(type, LEGACY_ID);
-                if (legacyFoodBlockState != null && !legacyFoodBlockState.FOOD_BLOCK_MAP.isEmpty()) {
-                    foodBlockState.FOOD_BLOCK_MAP.putAll(legacyFoodBlockState.FOOD_BLOCK_MAP);
-                    foodBlockState.setDirty();
+                foodBlockState = dataStorage.computeIfAbsent(TYPE);
+                if (world.dimension() == Level.OVERWORLD) {
+                    foodBlockState.readLegacyFiles(world.getServer().getWorldPath(LevelResource.DATA));
                 }
             }
             return foodBlockState;
         }
 
-        public ServerLevel getWorld() {
-            return this.world;
-        }
-
-        @Override
-        public CompoundTag save(CompoundTag nbt, HolderLookup.Provider registryLookup) {
-            ListTag foodBlocks = new ListTag();
-            for (Map.Entry<BlockPos, SpoiledComponent> entry : this.FOOD_BLOCK_MAP.entrySet()) {
-                CompoundTag foodBlock = new CompoundTag();
-                foodBlock.putInt("X", entry.getKey().getX());
-                foodBlock.putInt("Y", entry.getKey().getY());
-                foodBlock.putInt("Z", entry.getKey().getZ());
-                foodBlock.putInt("Year", entry.getValue().year());
-                foodBlock.putString("Season", entry.getValue().season());
-                foodBlocks.add(foodBlock);
-            }
-            nbt.put("FoodBlocks", foodBlocks);
-            return nbt;
-        }
-
-        public static FoodBlockState fromNbt(ServerLevel world, CompoundTag nbt) {
-            FoodBlockState foodBlockState = new FoodBlockState(world);
-            if (nbt.contains("FoodBlocks", Tag.TAG_LIST)) {
-                ListTag foodBlocks = nbt.getList("FoodBlocks", Tag.TAG_COMPOUND);
-                for (int i = 0; i < foodBlocks.size(); i++) {
-                    CompoundTag foodBlock = foodBlocks.getCompound(i);
-                    foodBlockState.FOOD_BLOCK_MAP.put(new BlockPos(foodBlock.getInt("X"), foodBlock.getInt("Y"), foodBlock.getInt("Z")),
-                            new SpoiledComponent(foodBlock.getString("Season"), foodBlock.getInt("Year")));
+        private void readLegacyFiles(Path dataFolder) {
+            for (String legacyFile : LEGACY_FILES) {
+                Path path = dataFolder.resolve(legacyFile);
+                if (!Files.exists(path)) {
+                    continue;
                 }
-            } else {
-                for (int i = 0; i < nbt.getInt("FoodBlockMapSize"); i++) {
-                    if (nbt.contains("FoodBlockSeason" + i, Tag.TAG_STRING)) {
-                        foodBlockState.FOOD_BLOCK_MAP.put(new BlockPos(nbt.getInt("FoodBlockX" + i), nbt.getInt("FoodBlockY" + i), nbt.getInt("FoodBlockZ" + i)),
-                                new SpoiledComponent(nbt.getString("FoodBlockSeason" + i), nbt.getInt("FoodBlockYear" + i)));
+                try {
+                    CompoundTag nbt = NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap()).getCompoundOrEmpty("data");
+                    ListTag foodBlocks = nbt.getListOrEmpty("FoodBlocks");
+                    for (int i = 0; i < foodBlocks.size(); i++) {
+                        CompoundTag foodBlock = foodBlocks.getCompoundOrEmpty(i);
+                        this.FOOD_BLOCK_MAP.putIfAbsent(new BlockPos(foodBlock.getIntOr("X", 0), foodBlock.getIntOr("Y", 0), foodBlock.getIntOr("Z", 0)),
+                                new SpoiledComponent(foodBlock.getStringOr("Season", ""), foodBlock.getIntOr("Year", 0)));
                     }
+                    for (int i = 0; i < nbt.getIntOr("FoodBlockMapSize", 0); i++) {
+                        if (nbt.getString("FoodBlockSeason" + i).isPresent()) {
+                            this.FOOD_BLOCK_MAP.putIfAbsent(new BlockPos(nbt.getIntOr("FoodBlockX" + i, 0), nbt.getIntOr("FoodBlockY" + i, 0), nbt.getIntOr("FoodBlockZ" + i, 0)),
+                                    new SpoiledComponent(nbt.getStringOr("FoodBlockSeason" + i, ""), nbt.getIntOr("FoodBlockYear" + i, 0)));
+                        }
+                    }
+                    this.setDirty();
+                } catch (IOException exception) {
+                    SpoiledZMain.LOGGER.warn("Failed to read legacy SpoiledZ food block data from {}", path, exception);
                 }
             }
-            return foodBlockState;
         }
 
         public void addFoodBlock(BlockPos pos, SpoiledComponent spoiledComponent) {
@@ -464,7 +455,7 @@ public class SpoiledUtil {
             return this.FOOD_BLOCK_MAP;
         }
 
-        public void tick() {
+        public void tick(ServerLevel world) {
             if (this.FOOD_BLOCK_MAP.isEmpty()) {
                 return;
             }
@@ -473,15 +464,15 @@ public class SpoiledUtil {
             while (iterator.hasNext()) {
                 Map.Entry<BlockPos, SpoiledComponent> entry = iterator.next();
                 BlockPos pos = entry.getKey();
-                if (!this.world.hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
+                if (!world.hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
                     continue;
                 }
-                BlockState state = this.world.getBlockState(pos);
+                BlockState state = world.getBlockState(pos);
                 if (state.hasProperty(SPOILED)) {
                     if (state.getValue(SPOILED)) {
                         iterator.remove();
                         this.setDirty();
-                    } else if (getSpoilingTime(this.world, entry.getValue()) >= 4) {
+                    } else if (getSpoilingTime(world, entry.getValue()) >= 4) {
                         iterator.remove();
                         this.setDirty();
                         if (spoiledPositions == null) {
@@ -496,9 +487,9 @@ public class SpoiledUtil {
             }
             if (spoiledPositions != null) {
                 for (BlockPos pos : spoiledPositions) {
-                    BlockState state = this.world.getBlockState(pos);
+                    BlockState state = world.getBlockState(pos);
                     if (state.hasProperty(SPOILED)) {
-                        this.world.setBlockAndUpdate(pos, state.setValue(SPOILED, true));
+                        world.setBlockAndUpdate(pos, state.setValue(SPOILED, true));
                     }
                 }
             }

@@ -1,12 +1,9 @@
 {
   "pack": {
-    "pack_format": 15,
-    "supported_formats": {
-      "min_inclusive": 1,
-      "max_inclusive": 999
-      },
     "description": {
-        "text": "farmz spoiledz compat"
-    }
+      "text": "farmz spoiledz compat"
+    },
+    "min_format": 82,
+    "max_format": 999
   }
 }

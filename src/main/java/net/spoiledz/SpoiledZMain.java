@@ -3,19 +3,20 @@ package net.spoiledz;
 import java.util.List;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.spoiledz.init.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SpoiledZMain implements ModInitializer {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger("spoiledz");
 
     public static final List<String> FABRIC_SEASONS = List.of("spring", "summer", "fall", "winter");
     public static final List<String> SERENE_SEASONS = List.of("SPRING", "SUMMER", "AUTUMN", "WINTER");
 
     @Override
     public void onInitialize() {
-        if (!EventInit.isSereneSeasonsLoaded && !EventInit.isFabricSeasonsLoaded) {
-            throw new IllegalStateException("SpoiledZ requires Fabric Seasons or Serene Seasons to be installed");
-        }
         ConfigInit.init();
         ComponentInit.init();
         TagInit.init();
@@ -23,8 +24,8 @@ public class SpoiledZMain implements ModInitializer {
         CompatInit.init();
     }
 
-    public static ResourceLocation identifierOf(String name) {
-        return ResourceLocation.fromNamespaceAndPath("spoiledz", name);
+    public static Identifier identifierOf(String name) {
+        return Identifier.fromNamespaceAndPath("spoiledz", name);
     }
 
 }

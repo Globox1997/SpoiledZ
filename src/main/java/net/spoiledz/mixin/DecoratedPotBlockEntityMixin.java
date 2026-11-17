@@ -39,4 +39,12 @@ public abstract class DecoratedPotBlockEntityMixin extends BlockEntity {
         }
     }
 
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (this.getLevel() != null && !this.getLevel().isClientSide()) {
+            SpoiledUtil.removePotted(this.getLevel(), this.item);
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
+
 }
