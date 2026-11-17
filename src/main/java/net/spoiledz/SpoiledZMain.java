@@ -3,7 +3,7 @@ package net.spoiledz;
 import java.util.List;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.spoiledz.init.*;
 
 public class SpoiledZMain implements ModInitializer {
@@ -23,8 +23,8 @@ public class SpoiledZMain implements ModInitializer {
         CompatInit.init();
     }
 
-    public static Identifier identifierOf(String name) {
-        return Identifier.of("spoiledz", name);
+    public static ResourceLocation identifierOf(String name) {
+        return ResourceLocation.fromNamespaceAndPath("spoiledz", name);
     }
 
 }

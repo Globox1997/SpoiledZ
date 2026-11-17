@@ -1,10 +1,10 @@
 package net.spoiledz.mixin;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.DecoratedPotBlock;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.DecoratedPotBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.spoiledz.util.SpoiledUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,11 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(DecoratedPotBlock.class)
 public class DecoratedPotBlockMixin {
 
-    @Inject(method = "onStateReplaced", at = @At("HEAD"))
-    private void onStateReplacedMixin(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved, CallbackInfo info) {
-        if (!state.isOf(newState.getBlock()) && world.getBlockEntity(pos) instanceof Inventory inventory) {
-            for (int i = 0; i < inventory.size(); i++) {
-                SpoiledUtil.removePotted(world, inventory.getStack(i));
+    @Inject(method = "onRemove", at = @At("HEAD"))
+    private void onStateReplacedMixin(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved, CallbackInfo info) {
+        if (!state.is(newState.getBlock()) && world.getBlockEntity(pos) instanceof Container inventory) {
+            for (int i = 0; i < inventory.getContainerSize(); i++) {
+                SpoiledUtil.removePotted(world, inventory.getItem(i));
             }
         }
     }

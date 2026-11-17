@@ -7,9 +7,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.spoiledz.util.SpoiledUtil;
 import vectorwing.farmersdelight.common.block.entity.StoveBlockEntity;
 import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
@@ -25,10 +24,10 @@ public class StoveBlockEntityMixin {
     @Final
     private int[] cookingTimesTotal;
 
-    @ModifyArg(method = "cookAndOutputItems", at = @At(value = "INVOKE", target = "Lvectorwing/farmersdelight/common/utility/ItemUtils;spawnItemEntity(Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;DDDDDD)V"), index = 1, require = 0)
+    @ModifyArg(method = "cookAndOutputItems", at = @At(value = "INVOKE", target = "Lvectorwing/farmersdelight/common/utility/ItemUtils;spawnItemEntity(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;DDDDDD)V"), index = 1, require = 0)
     private ItemStack cookAndOutputItemsMixin(ItemStack stack) {
         StoveBlockEntity entity = (StoveBlockEntity) (Object) this;
-        World world = entity.getWorld();
+        Level world = entity.getLevel();
         if (world != null) {
             ItemStackHandler inventory = entity.getInventory();
             for (int i = 0; i < inventory.getSlotCount(); i++) {

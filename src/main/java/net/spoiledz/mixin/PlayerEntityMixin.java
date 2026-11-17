@@ -1,9 +1,9 @@
 package net.spoiledz.mixin;
 
-import net.minecraft.component.type.FoodComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.spoiledz.util.SpoiledUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,23 +11,23 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(PlayerEntity.class)
+@Mixin(Player.class)
 public class PlayerEntityMixin {
 
-    @ModifyVariable(method = "eatFood", at = @At("HEAD"), ordinal = 0)
-    private FoodComponent eatFoodMixin(FoodComponent original, World world, ItemStack stack, FoodComponent foodComponent) {
-        PlayerEntity playerEntity = (PlayerEntity) (Object) this;
+    @ModifyVariable(method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;", at = @At("HEAD"), ordinal = 0)
+    private FoodProperties eatFoodMixin(FoodProperties original, Level world, ItemStack stack, FoodProperties foodComponent) {
+        Player playerEntity = (Player) (Object) this;
         if (stack != null && SpoiledUtil.hasSpoilage(stack)) {
-            return SpoiledUtil.getSpoiledFoodComponent(original, SpoiledUtil.getSpoilingTime(playerEntity.getWorld(), stack));
+            return SpoiledUtil.getSpoiledFoodComponent(original, SpoiledUtil.getSpoilingTime(playerEntity.level(), stack));
         }
         return original;
     }
 
-    @Inject(method = "eatFood", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;eatFood(Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;Lnet/minecraft/component/type/FoodComponent;)Lnet/minecraft/item/ItemStack;"))
-    private void eatFoodMixin(World world, ItemStack stack, FoodComponent foodComponent, CallbackInfoReturnable<ItemStack> info) {
-        PlayerEntity playerEntity = (PlayerEntity) (Object) this;
+    @Inject(method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;"))
+    private void eatFoodMixin(Level world, ItemStack stack, FoodProperties foodComponent, CallbackInfoReturnable<ItemStack> info) {
+        Player playerEntity = (Player) (Object) this;
         if (stack != null) {
-            SpoiledUtil.applySpoiledEffects(playerEntity, SpoiledUtil.getSpoilingTime(playerEntity.getWorld(), stack));
+            SpoiledUtil.applySpoiledEffects(playerEntity, SpoiledUtil.getSpoilingTime(playerEntity.level(), stack));
         }
     }
 }

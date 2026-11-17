@@ -6,77 +6,76 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CakeBlock;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.HungerConstants;
-import net.minecraft.entity.player.HungerManager;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodConstants;
+import net.minecraft.world.food.FoodData;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CakeBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.BlockHitResult;
 import net.spoiledz.util.SpoiledUtil;
 
 @Mixin(CakeBlock.class)
 public abstract class CakeBlockMixin extends Block {
 
-    public CakeBlockMixin(Settings settings) {
+    public CakeBlockMixin(Properties settings) {
         super(settings);
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
-    private void initMixin(AbstractBlock.Settings settings, CallbackInfo info) {
-        this.setDefaultState(this.stateManager.getDefaultState().with(SpoiledUtil.SPOILED, false));
+    private void initMixin(BlockBehaviour.Properties settings, CallbackInfo info) {
+        this.registerDefaultState(this.stateDefinition.any().setValue(SpoiledUtil.SPOILED, false));
     }
 
-    @Inject(method = "appendProperties", at = @At("TAIL"))
-    protected void appendPropertiesMixin(StateManager.Builder<Block, BlockState> builder, CallbackInfo info) {
+    @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
+    protected void appendPropertiesMixin(StateDefinition.Builder<Block, BlockState> builder, CallbackInfo info) {
         builder.add(SpoiledUtil.SPOILED);
     }
 
-    @Inject(method = "onUseWithItem", at = @At("HEAD"), cancellable = true)
-    private void onUseWithItemMixin(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit, CallbackInfoReturnable<ItemActionResult> info) {
-        if (stack.isIn(ItemTags.CANDLES) && state.contains(SpoiledUtil.SPOILED) && state.get(SpoiledUtil.SPOILED)) {
-            info.setReturnValue(ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
+    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
+    private void onUseWithItemMixin(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<ItemInteractionResult> info) {
+        if (stack.is(ItemTags.CANDLES) && state.hasProperty(SpoiledUtil.SPOILED) && state.getValue(SpoiledUtil.SPOILED)) {
+            info.setReturnValue(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
         }
     }
 
-    @Redirect(method = "tryEat", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/HungerManager;add(IF)V"))
-    private static void tryEatMixin(HungerManager hungerManager, int food, float saturationModifier, WorldAccess world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (world instanceof ServerWorld serverWorld) {
+    @Redirect(method = "eat", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/food/FoodData;eat(IF)V"))
+    private static void tryEatMixin(FoodData hungerManager, int food, float saturationModifier, LevelAccessor world, BlockPos pos, BlockState state, Player player) {
+        if (world instanceof ServerLevel serverWorld) {
             int spoiledTime = SpoiledUtil.FoodBlockState.getFoodBlockSpoilingTime(serverWorld, pos, state);
             if (spoiledTime >= 3) {
                 float factor = SpoiledUtil.getSpoiledFoodFactor(spoiledTime);
                 int spoiledFood = Math.max(1, (int) (food * factor));
-                float spoiledSaturation = HungerConstants.calculateSaturation(food, saturationModifier) * factor;
-                hungerManager.add(spoiledFood, spoiledSaturation / (2.0F * spoiledFood));
+                float spoiledSaturation = FoodConstants.saturationByModifier(food, saturationModifier) * factor;
+                hungerManager.eat(spoiledFood, spoiledSaturation / (2.0F * spoiledFood));
                 SpoiledUtil.applySpoiledEffects(player, spoiledTime);
                 return;
             }
         }
-        hungerManager.add(food, saturationModifier);
+        hungerManager.eat(food, saturationModifier);
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-        super.onPlaced(world, pos, state, placer, itemStack);
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
+        super.setPlacedBy(world, pos, state, placer, itemStack);
         SpoiledUtil.FoodBlockState.onPlacedFoodBlock(world, pos, state, itemStack);
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        super.onStateReplaced(state, world, pos, newState, moved);
+    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
+        super.onRemove(state, world, pos, newState, moved);
         SpoiledUtil.FoodBlockState.onRemovedFoodBlock(world, pos, newState);
     }
 

@@ -5,23 +5,22 @@ import java.util.ArrayList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CrafterBlock;
-import net.minecraft.block.entity.CrafterBlockEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.block.CrafterBlock;
+import net.minecraft.world.level.block.entity.CrafterBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.spoiledz.util.SpoiledUtil;
 
 @Mixin(CrafterBlock.class)
 public class CrafterBlockMixin {
 
-    @ModifyArg(method = "craft", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/CrafterBlock;transferOrSpawnStack(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/entity/CrafterBlockEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/block/BlockState;Lnet/minecraft/recipe/RecipeEntry;)V", ordinal = 0), index = 3)
-    private ItemStack craftMixin(ServerWorld world, BlockPos pos, CrafterBlockEntity blockEntity, ItemStack stack, BlockState state, RecipeEntry<CraftingRecipe> recipe) {
-        SpoiledUtil.setItemStackSpoilage(world, stack, new ArrayList<>(blockEntity.getHeldStacks()));
+    @ModifyArg(method = "dispenseFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/CrafterBlock;dispenseItem(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/entity/CrafterBlockEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/item/crafting/RecipeHolder;)V", ordinal = 0), index = 3)
+    private ItemStack craftMixin(ServerLevel world, BlockPos pos, CrafterBlockEntity blockEntity, ItemStack stack, BlockState state, RecipeHolder<CraftingRecipe> recipe) {
+        SpoiledUtil.setItemStackSpoilage(world, stack, new ArrayList<>(blockEntity.getItems()));
         return stack;
     }
 }

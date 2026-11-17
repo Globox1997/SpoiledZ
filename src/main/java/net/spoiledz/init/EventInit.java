@@ -11,7 +11,7 @@ public class EventInit {
 
     public static void init() {
         ServerTickEvents.END_WORLD_TICK.register(world -> {
-            if (world.getTime() % 100 == 0 && world instanceof ServerWorldAccess serverWorldAccess) {
+            if (world.getGameTime() % 100 == 0 && world instanceof ServerWorldAccess serverWorldAccess) {
                 serverWorldAccess.getFoodBlockState().tick();
             }
         });

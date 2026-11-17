@@ -10,7 +10,7 @@ public class AppleSkinPlugin implements AppleSkinApi {
     public void registerEvents() {
         FoodValuesEvent.EVENT.register(event -> {
             if (event.player != null && SpoiledUtil.hasSpoilage(event.itemStack)) {
-                event.modifiedFoodComponent = SpoiledUtil.getSpoiledFoodComponent(event.modifiedFoodComponent, SpoiledUtil.getSpoilingTime(event.player.getWorld(), event.itemStack));
+                event.modifiedFoodComponent = SpoiledUtil.getSpoiledFoodComponent(event.modifiedFoodComponent, SpoiledUtil.getSpoilingTime(event.player.level(), event.itemStack));
             }
         });
     }

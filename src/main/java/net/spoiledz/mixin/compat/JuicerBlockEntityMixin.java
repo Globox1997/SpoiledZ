@@ -12,11 +12,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.spoiledz.util.SpoiledUtil;
 
 @Mixin(JuicerBlockEntity.class)
@@ -25,21 +24,21 @@ public class JuicerBlockEntityMixin {
     @Unique
     private final List<ItemStack> recipeStacks = new ArrayList<ItemStack>();
 
-    @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;removeStack(II)Lnet/minecraft/item/ItemStack;", ordinal = 0))
+    @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;removeItem(II)Lnet/minecraft/world/item/ItemStack;", ordinal = 0))
     private static void stackCraftItemMixin(JuicerBlockEntity entity, CallbackInfo info) {
-        ((JuicerBlockEntityMixin) (Object) entity).setRecipeStacks(List.of(entity.getStack(0).copy(), entity.getStack(1).copy()));
+        ((JuicerBlockEntityMixin) (Object) entity).setRecipeStacks(List.of(entity.getItem(0).copy(), entity.getItem(1).copy()));
     }
 
     @Inject(method = "craftItem", at = @At(value = "INVOKE", target = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;resetProgress()V"))
     private static void craftItemMixin(JuicerBlockEntity entity, CallbackInfo info) {
-        SpoiledUtil.setItemStackSpoilage(entity.getWorld(), entity.getStack(3), ((JuicerBlockEntityMixin) (Object) entity).getRecipeStacks());
+        SpoiledUtil.setItemStackSpoilage(entity.getLevel(), entity.getItem(3), ((JuicerBlockEntityMixin) (Object) entity).getRecipeStacks());
     }
 
     @Inject(method = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;hasRecipe(Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;)Z", at = @At(value = "RETURN"), cancellable = true, remap = false)
     private static void hasRecipeMixin(JuicerBlockEntity entity, CallbackInfoReturnable<Boolean> info) {
-        if (info.getReturnValue() && !entity.getStack(3).isEmpty() && SpoiledUtil.isSpoilable(entity.getStack(3))) {
+        if (info.getReturnValue() && !entity.getItem(3).isEmpty() && SpoiledUtil.isSpoilable(entity.getItem(3))) {
             for (int i = 0; i < 2; i++) {
-                if (!entity.getStack(i).isEmpty() && SpoiledUtil.isSpoilable(entity.getStack(i)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(i))) {
+                if (!entity.getItem(i).isEmpty() && SpoiledUtil.isSpoilable(entity.getItem(i)) && !SpoiledUtil.isSpoilageEqual(entity.getItem(3), entity.getItem(i))) {
                     info.setReturnValue(false);
                     return;
                 }
@@ -48,8 +47,8 @@ public class JuicerBlockEntityMixin {
     }
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lcom/ianm1647/expandeddelight/block/entity/JuicerBlockEntity;useStoredBottleOnJuice()V"), cancellable = true)
-    private static void tickMixin(World world, BlockPos pos, BlockState state, JuicerBlockEntity entity, CallbackInfo info) {
-        if (!entity.getStack(4).isEmpty() && ItemStack.areItemsEqual(entity.getStack(3), entity.getStack(4)) && !SpoiledUtil.isSpoilageEqual(entity.getStack(3), entity.getStack(4))) {
+    private static void tickMixin(Level world, BlockPos pos, BlockState state, JuicerBlockEntity entity, CallbackInfo info) {
+        if (!entity.getItem(4).isEmpty() && ItemStack.isSameItem(entity.getItem(3), entity.getItem(4)) && !SpoiledUtil.isSpoilageEqual(entity.getItem(3), entity.getItem(4))) {
             info.cancel();
         }
     }

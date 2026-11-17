@@ -1,10 +1,10 @@
 package net.spoiledz.mixin;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.spoiledz.mixin.access.AbstractFurnaceBlockEntityAccessor;
 import net.spoiledz.util.SpoiledComponent;
 import net.spoiledz.util.SpoiledUtil;
@@ -31,14 +31,14 @@ public class AbstractFurnaceBlockEntityMixin {
     // private static void craftRecipeMixin(@Nullable Recipe<?> recipe, DefaultedList<ItemStack> slots, int count, CallbackInfoReturnable<Boolean> info) {
     // }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/AbstractFurnaceBlockEntity;craftRecipe(Lnet/minecraft/registry/DynamicRegistryManager;Lnet/minecraft/recipe/RecipeEntry;Lnet/minecraft/util/collection/DefaultedList;I)Z"))
-    private static void stackTickMixin(World world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo info) {
+    @Inject(method = "serverTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;burn(Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/world/item/crafting/RecipeHolder;Lnet/minecraft/core/NonNullList;I)Z"))
+    private static void stackTickMixin(Level world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo info) {
         ((AbstractFurnaceBlockEntityMixin) (Object) blockEntity).setRecipeStack(((AbstractFurnaceBlockEntityAccessor) blockEntity).getInventory().get(0));
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/AbstractFurnaceBlockEntity;setLastRecipe(Lnet/minecraft/recipe/RecipeEntry;)V"))
-    private static void tickMixin(World world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo info) {
-        ItemStack outputStack = blockEntity.getStack(2);
+    @Inject(method = "serverTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;setRecipeUsed(Lnet/minecraft/world/item/crafting/RecipeHolder;)V"))
+    private static void tickMixin(Level world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo info) {
+        ItemStack outputStack = blockEntity.getItem(2);
         SpoiledComponent previousSpoiledComponent = SpoiledUtil.getSpoiledComponent(outputStack);
         List<ItemStack> recipeStacks = new ArrayList<>();
         ItemStack recipeStack = ((AbstractFurnaceBlockEntityMixin) (Object) blockEntity).getRecipeStack();

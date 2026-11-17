@@ -9,9 +9,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.satisfy.vinery.core.block.entity.ApplePressBlockEntity;
 import net.satisfy.vinery.core.recipe.ApplePressFermentingRecipe;
 import net.satisfy.vinery.core.recipe.ApplePressMashingRecipe;
@@ -51,15 +50,15 @@ public class ApplePressBlockEntityMixin {
     @Unique
     private void storeRecipeStacks(ApplePressBlockEntity entity, int outputSlot, int inputSlot) {
         this.recipeStacks.clear();
-        this.recipeStacks.add(entity.getStack(inputSlot).copy());
-        this.previousSpoiledComponent = SpoiledUtil.getSpoiledComponent(entity.getStack(outputSlot));
+        this.recipeStacks.add(entity.getItem(inputSlot).copy());
+        this.previousSpoiledComponent = SpoiledUtil.getSpoiledComponent(entity.getItem(outputSlot));
     }
 
     @Unique
     private void applyRecipeStacks(ApplePressBlockEntity entity, int outputSlot) {
-        World world = entity.getWorld();
+        Level world = entity.getLevel();
         if (world != null) {
-            ItemStack outputStack = entity.getStack(outputSlot);
+            ItemStack outputStack = entity.getItem(outputSlot);
             SpoiledUtil.setItemStackSpoilage(world, outputStack, new ArrayList<>(this.recipeStacks));
             SpoiledUtil.keepOlderSpoilage(outputStack, this.previousSpoiledComponent);
         }

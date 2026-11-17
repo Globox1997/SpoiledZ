@@ -10,10 +10,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.Level;
 import net.spoiledz.util.SpoiledComponent;
 import net.spoiledz.util.SpoiledUtil;
 import vectorwing.farmersdelight.common.block.entity.CookingPotBlockEntity;
@@ -27,10 +26,10 @@ public class CookingPotBlockEntityMixin {
     @Unique
     private SpoiledComponent mealSpoiledComponent = null;
 
-    @Inject(method = "processCooking", at = @At(value = "INVOKE", target = "Lvectorwing/farmersdelight/common/block/entity/CookingPotBlockEntity;setLastRecipe(Lnet/minecraft/recipe/RecipeEntry;)V"), require = 0)
-    private void processCookingMixin(RecipeEntry<CookingPotRecipe> recipe, CookingPotBlockEntity cookingPot, CallbackInfoReturnable<Boolean> info) {
+    @Inject(method = "processCooking", at = @At(value = "INVOKE", target = "Lvectorwing/farmersdelight/common/block/entity/CookingPotBlockEntity;setRecipeUsed(Lnet/minecraft/world/item/crafting/RecipeHolder;)V"), require = 0)
+    private void processCookingMixin(RecipeHolder<CookingPotRecipe> recipe, CookingPotBlockEntity cookingPot, CallbackInfoReturnable<Boolean> info) {
         CookingPotBlockEntity entity = (CookingPotBlockEntity) (Object) this;
-        World world = entity.getWorld();
+        Level world = entity.getLevel();
         if (world != null) {
             ItemStackHandler inventory = entity.getInventory();
             ItemStack mealStack = inventory.getStackInSlot(CookingPotBlockEntity.MEAL_DISPLAY_SLOT);

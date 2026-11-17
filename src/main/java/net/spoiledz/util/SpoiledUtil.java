@@ -2,31 +2,30 @@ package net.spoiledz.util;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CandleCakeBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.component.ComponentChanges;
-import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FoodComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.CandleCakeBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.spoiledz.SpoiledZMain;
 import net.spoiledz.access.ServerWorldAccess;
 import net.spoiledz.init.ComponentInit;
@@ -40,25 +39,25 @@ import sereneseasons.api.season.SeasonHelper;
 
 public class SpoiledUtil {
 
-    public static final BooleanProperty SPOILED = BooleanProperty.of("spoiled");
+    public static final BooleanProperty SPOILED = BooleanProperty.create("spoiled");
 
     private static final int INVALID_SEASON_COUNT = Integer.MIN_VALUE;
 
     private static volatile SeasonCountCache clientSeasonCountCache = null;
     private static volatile SeasonCountCache serverSeasonCountCache = null;
 
-    private record SeasonCountCache(WeakReference<World> world, long time, int seasonCount) {
+    private record SeasonCountCache(WeakReference<Level> world, long time, int seasonCount) {
     }
 
     // 0 = 0%, 1=25%, 2=50%, 3=75%, 4=100%
-    public static int getSpoilingTime(World world, ItemStack stack) {
+    public static int getSpoilingTime(Level world, ItemStack stack) {
         if (stack == null) {
             return -1;
         }
         return getSpoilingTime(world, getSpoiledComponent(stack));
     }
 
-    public static int getSpoilingTime(World world, @Nullable SpoiledComponent spoiledComponent) {
+    public static int getSpoilingTime(Level world, @Nullable SpoiledComponent spoiledComponent) {
         if (world != null && spoiledComponent != null) {
             int seasonSpoilage = Math.max(1, ConfigInit.CONFIG.seasonSpoilage);
             int returnSpoilage = (int) (getSeasonsPassedBy(world, spoiledComponent) / ((float) seasonSpoilage / 4));
@@ -77,7 +76,7 @@ public class SpoiledUtil {
 
     public static void setSpoiledComponent(ItemStack stack, SpoiledComponent spoiledComponent) {
         stack.set(ComponentInit.SPOILED, spoiledComponent);
-        if (stack.contains(ComponentInit.LEGACY_SPOILED)) {
+        if (stack.has(ComponentInit.LEGACY_SPOILED)) {
             stack.remove(ComponentInit.LEGACY_SPOILED);
         }
     }
@@ -90,25 +89,25 @@ public class SpoiledUtil {
 
     public static void setPottedComponent(ItemStack stack, SpoiledComponent pottedComponent) {
         stack.set(ComponentInit.POTTED, pottedComponent);
-        if (stack.contains(ComponentInit.LEGACY_POTTED)) {
+        if (stack.has(ComponentInit.LEGACY_POTTED)) {
             stack.remove(ComponentInit.LEGACY_POTTED);
         }
     }
 
     public static boolean migrateLegacyComponents(ItemStack stack) {
         boolean changed = false;
-        if (stack.contains(ComponentInit.LEGACY_SPOILED)) {
+        if (stack.has(ComponentInit.LEGACY_SPOILED)) {
             SpoiledComponent legacySpoiledComponent = stack.get(ComponentInit.LEGACY_SPOILED);
             stack.remove(ComponentInit.LEGACY_SPOILED);
-            if (legacySpoiledComponent != null && !stack.contains(ComponentInit.SPOILED)) {
+            if (legacySpoiledComponent != null && !stack.has(ComponentInit.SPOILED)) {
                 stack.set(ComponentInit.SPOILED, legacySpoiledComponent);
             }
             changed = true;
         }
-        if (stack.contains(ComponentInit.LEGACY_POTTED)) {
+        if (stack.has(ComponentInit.LEGACY_POTTED)) {
             SpoiledComponent legacyPottedComponent = stack.get(ComponentInit.LEGACY_POTTED);
             stack.remove(ComponentInit.LEGACY_POTTED);
-            if (legacyPottedComponent != null && !stack.contains(ComponentInit.POTTED)) {
+            if (legacyPottedComponent != null && !stack.has(ComponentInit.POTTED)) {
                 stack.set(ComponentInit.POTTED, legacyPottedComponent);
             }
             changed = true;
@@ -116,8 +115,8 @@ public class SpoiledUtil {
         return changed;
     }
 
-    public static void setItemStackSpoilage(World world, ItemStack stack, @Nullable List<ItemStack> recipeStacks) {
-        if (!world.isClient() && isSpoilable(stack)) {
+    public static void setItemStackSpoilage(Level world, ItemStack stack, @Nullable List<ItemStack> recipeStacks) {
+        if (!world.isClientSide() && isSpoilable(stack)) {
             if (recipeStacks == null) {
                 if (!hasSpoilage(stack)) {
                     setSpoiledComponent(stack, getCurrentSpoiledComponent(world));
@@ -153,12 +152,12 @@ public class SpoiledUtil {
         }
     }
 
-    public static boolean onStackSeen(World world, ItemStack stack) {
+    public static boolean onStackSeen(Level world, ItemStack stack) {
         return onStackSeen(world, stack, true);
     }
 
-    public static boolean onStackSeen(World world, ItemStack stack, boolean removePotted) {
-        if (world == null || world.isClient() || stack == null || stack.isEmpty()) {
+    public static boolean onStackSeen(Level world, ItemStack stack, boolean removePotted) {
+        if (world == null || world.isClientSide() || stack == null || stack.isEmpty()) {
             return false;
         }
         boolean changed = migrateLegacyComponents(stack);
@@ -172,7 +171,7 @@ public class SpoiledUtil {
         return changed;
     }
 
-    public static boolean removePotted(World world, ItemStack stack) {
+    public static boolean removePotted(Level world, ItemStack stack) {
         SpoiledComponent pottedComponent = getPottedComponent(stack);
         if (pottedComponent == null) {
             return false;
@@ -187,11 +186,11 @@ public class SpoiledUtil {
     }
 
     @Nullable
-    public static World getInventoryWorld(@Nullable Inventory inventory) {
+    public static Level getInventoryWorld(@Nullable Container inventory) {
         if (inventory instanceof BlockEntity blockEntity) {
-            return blockEntity.getWorld();
+            return blockEntity.getLevel();
         } else if (inventory instanceof Entity entity) {
-            return entity.getWorld();
+            return entity.level();
         }
         return null;
     }
@@ -206,11 +205,11 @@ public class SpoiledUtil {
         }
     }
 
-    public static int getSeasonsPassedBy(World world, String storedSeason, int storedYear) {
+    public static int getSeasonsPassedBy(Level world, String storedSeason, int storedYear) {
         return getSeasonsPassedBy(world, new SpoiledComponent(storedSeason, storedYear));
     }
 
-    public static int getSeasonsPassedBy(World world, SpoiledComponent spoiledComponent) {
+    public static int getSeasonsPassedBy(Level world, SpoiledComponent spoiledComponent) {
         int storedSeasonCount = getSeasonCount(spoiledComponent);
         if (storedSeasonCount == INVALID_SEASON_COUNT) {
             return 0;
@@ -242,19 +241,19 @@ public class SpoiledUtil {
         return new SpoiledComponent(getSeasons().get(Math.floorMod(seasonCount, 4)), Math.floorDiv(seasonCount, 4));
     }
 
-    public static SpoiledComponent getCurrentSpoiledComponent(World world) {
+    public static SpoiledComponent getCurrentSpoiledComponent(Level world) {
         return fromSeasonCount(getCurrentSeasonCount(world));
     }
 
-    public static int getCurrentSeasonCount(World world) {
-        long time = world.getTime();
-        SeasonCountCache cache = world.isClient() ? clientSeasonCountCache : serverSeasonCountCache;
+    public static int getCurrentSeasonCount(Level world) {
+        long time = world.getGameTime();
+        SeasonCountCache cache = world.isClientSide() ? clientSeasonCountCache : serverSeasonCountCache;
         if (cache != null && cache.time() == time && cache.world().get() == world) {
             return cache.seasonCount();
         }
         int seasonCount = calculateCurrentSeasonCount(world);
         SeasonCountCache newCache = new SeasonCountCache(new WeakReference<>(world), time, seasonCount);
-        if (world.isClient()) {
+        if (world.isClientSide()) {
             clientSeasonCountCache = newCache;
         } else {
             serverSeasonCountCache = newCache;
@@ -262,7 +261,7 @@ public class SpoiledUtil {
         return seasonCount;
     }
 
-    private static int calculateCurrentSeasonCount(World world) {
+    private static int calculateCurrentSeasonCount(Level world) {
         int seasonIndex = Math.max(0, getSeasonIndex(getCurrentSeason(world)));
         long seasonLength;
         if (EventInit.isSereneSeasonsLoaded) {
@@ -270,41 +269,41 @@ public class SpoiledUtil {
         } else {
             seasonLength = FabricSeasons.getCurrentSeason(world).getSeasonLength();
         }
-        double estimatedSeasonCount = seasonLength > 0 ? world.getTimeOfDay() / (double) seasonLength : 0.0D;
+        double estimatedSeasonCount = seasonLength > 0 ? world.getDayTime() / (double) seasonLength : 0.0D;
         return seasonIndex + 4 * (int) Math.round((estimatedSeasonCount - seasonIndex) / 4.0D);
     }
 
-    public static String getCurrentSeason(World world) {
+    public static String getCurrentSeason(Level world) {
         String season;
         if (EventInit.isSereneSeasonsLoaded) {
             season = SeasonHelper.getSeasonState(world).getSeason().name();
         } else {
-            season = FabricSeasons.getCurrentSeason(world).asString();
+            season = FabricSeasons.getCurrentSeason(world).getSerializedName();
         }
         return season;
     }
 
-    public static int getCurrentYear(World world) {
+    public static int getCurrentYear(Level world) {
         return Math.floorDiv(getCurrentSeasonCount(world), 4);
     }
 
     public static boolean hasSpoilage(ItemStack stack) {
-        return stack.contains(ComponentInit.SPOILED) || stack.contains(ComponentInit.LEGACY_SPOILED);
+        return stack.has(ComponentInit.SPOILED) || stack.has(ComponentInit.LEGACY_SPOILED);
     }
 
     public static boolean isSpoilable(ItemStack stack) {
-        return (stack.contains(DataComponentTypes.FOOD) || stack.isIn(TagInit.SPOILING_ITEMS)) && !stack.isIn(TagInit.NON_SPOILING_ITEMS);
+        return (stack.has(DataComponents.FOOD) || stack.is(TagInit.SPOILING_ITEMS)) && !stack.is(TagInit.NON_SPOILING_ITEMS);
     }
 
-    public static boolean isSpoilageComponent(ComponentType<?> type) {
+    public static boolean isSpoilageComponent(DataComponentType<?> type) {
         return type == ComponentInit.SPOILED || type == ComponentInit.POTTED || type == ComponentInit.LEGACY_SPOILED || type == ComponentInit.LEGACY_POTTED;
     }
 
     public static boolean areComponentsEqualIgnoringSpoilage(ItemStack itemStack, ItemStack itemStack2) {
-        ComponentChanges changes = itemStack.getComponentChanges();
-        ComponentChanges changes2 = itemStack2.getComponentChanges();
+        DataComponentPatch changes = itemStack.getComponentsPatch();
+        DataComponentPatch changes2 = itemStack2.getComponentsPatch();
         int count = 0;
-        for (Map.Entry<ComponentType<?>, Optional<?>> entry : changes.entrySet()) {
+        for (Map.Entry<DataComponentType<?>, Optional<?>> entry : changes.entrySet()) {
             if (isSpoilageComponent(entry.getKey())) {
                 continue;
             }
@@ -314,7 +313,7 @@ public class SpoiledUtil {
             count++;
         }
         int count2 = 0;
-        for (Map.Entry<ComponentType<?>, Optional<?>> entry : changes2.entrySet()) {
+        for (Map.Entry<DataComponentType<?>, Optional<?>> entry : changes2.entrySet()) {
             if (!isSpoilageComponent(entry.getKey())) {
                 count2++;
             }
@@ -324,7 +323,7 @@ public class SpoiledUtil {
 
     public static int hashComponentsIgnoringSpoilage(ItemStack stack) {
         int hash = 0;
-        for (Map.Entry<ComponentType<?>, Optional<?>> entry : stack.getComponentChanges().entrySet()) {
+        for (Map.Entry<DataComponentType<?>, Optional<?>> entry : stack.getComponentsPatch().entrySet()) {
             if (!isSpoilageComponent(entry.getKey())) {
                 hash += entry.hashCode();
             }
@@ -355,70 +354,70 @@ public class SpoiledUtil {
         return 1.0f;
     }
 
-    public static FoodComponent getSpoiledFoodComponent(FoodComponent original, int spoiledTime) {
+    public static FoodProperties getSpoiledFoodComponent(FoodProperties original, int spoiledTime) {
         if (spoiledTime < 3) {
             return original;
         }
         float factor = getSpoiledFoodFactor(spoiledTime);
-        return new FoodComponent((int) (original.nutrition() * factor), original.saturation() * factor, original.canAlwaysEat(), original.eatSeconds(), original.usingConvertsTo(), original.effects());
+        return new FoodProperties((int) (original.nutrition() * factor), original.saturation() * factor, original.canAlwaysEat(), original.eatSeconds(), original.usingConvertsTo(), original.effects());
     }
 
     public static void applySpoiledEffects(LivingEntity livingEntity, int spoiledTime) {
-        if (livingEntity == null || livingEntity.getWorld().isClient()) {
+        if (livingEntity == null || livingEntity.level().isClientSide()) {
             return;
         }
-        if (spoiledTime == 3 && livingEntity.getWorld().getRandom().nextFloat() < (float) (ConfigInit.CONFIG.effectChance / 100f)) {
-            livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, (int) (ConfigInit.CONFIG.effectDuration * 0.66f), 1));
+        if (spoiledTime == 3 && livingEntity.level().getRandom().nextFloat() < (float) (ConfigInit.CONFIG.effectChance / 100f)) {
+            livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) (ConfigInit.CONFIG.effectDuration * 0.66f), 1));
         } else if (spoiledTime >= 4) {
-            livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, ConfigInit.CONFIG.effectDuration / 2, 0));
-            livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, ConfigInit.CONFIG.effectDuration, 1));
-            if (livingEntity.getWorld().getRandom().nextFloat() < 0.05f) {
-                livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, ConfigInit.CONFIG.effectDuration / 3, 0));
+            livingEntity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, ConfigInit.CONFIG.effectDuration / 2, 0));
+            livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, ConfigInit.CONFIG.effectDuration, 1));
+            if (livingEntity.level().getRandom().nextFloat() < 0.05f) {
+                livingEntity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, ConfigInit.CONFIG.effectDuration / 3, 0));
             }
         }
     }
 
-    public static class FoodBlockState extends PersistentState {
+    public static class FoodBlockState extends SavedData {
 
         private static final String ID = "spoiledz_food_blocks";
         private static final String LEGACY_ID = "food_block_map";
 
         private final HashMap<BlockPos, SpoiledComponent> FOOD_BLOCK_MAP = new HashMap<>();
 
-        private final ServerWorld world;
+        private final ServerLevel world;
 
-        public FoodBlockState(ServerWorld world) {
+        public FoodBlockState(ServerLevel world) {
             this.world = world;
         }
 
-        public static PersistentState.Type<FoodBlockState> getPersistentStateType(ServerWorld world) {
-            return new PersistentState.Type<>(() -> new FoodBlockState(world), (nbt, registryLookup) -> fromNbt(world, nbt), null);
+        public static SavedData.Factory<FoodBlockState> getPersistentStateType(ServerLevel world) {
+            return new SavedData.Factory<>(() -> new FoodBlockState(world), (nbt, registryLookup) -> fromNbt(world, nbt), null);
         }
 
-        public static FoodBlockState getOrCreate(ServerWorld world) {
-            PersistentStateManager persistentStateManager = world.getPersistentStateManager();
-            PersistentState.Type<FoodBlockState> type = getPersistentStateType(world);
+        public static FoodBlockState getOrCreate(ServerLevel world) {
+            DimensionDataStorage persistentStateManager = world.getDataStorage();
+            SavedData.Factory<FoodBlockState> type = getPersistentStateType(world);
             FoodBlockState foodBlockState = persistentStateManager.get(type, ID);
             if (foodBlockState == null) {
-                foodBlockState = persistentStateManager.getOrCreate(type, ID);
+                foodBlockState = persistentStateManager.computeIfAbsent(type, ID);
                 FoodBlockState legacyFoodBlockState = persistentStateManager.get(type, LEGACY_ID);
                 if (legacyFoodBlockState != null && !legacyFoodBlockState.FOOD_BLOCK_MAP.isEmpty()) {
                     foodBlockState.FOOD_BLOCK_MAP.putAll(legacyFoodBlockState.FOOD_BLOCK_MAP);
-                    foodBlockState.markDirty();
+                    foodBlockState.setDirty();
                 }
             }
             return foodBlockState;
         }
 
-        public ServerWorld getWorld() {
+        public ServerLevel getWorld() {
             return this.world;
         }
 
         @Override
-        public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-            NbtList foodBlocks = new NbtList();
+        public CompoundTag save(CompoundTag nbt, HolderLookup.Provider registryLookup) {
+            ListTag foodBlocks = new ListTag();
             for (Map.Entry<BlockPos, SpoiledComponent> entry : this.FOOD_BLOCK_MAP.entrySet()) {
-                NbtCompound foodBlock = new NbtCompound();
+                CompoundTag foodBlock = new CompoundTag();
                 foodBlock.putInt("X", entry.getKey().getX());
                 foodBlock.putInt("Y", entry.getKey().getY());
                 foodBlock.putInt("Z", entry.getKey().getZ());
@@ -430,18 +429,18 @@ public class SpoiledUtil {
             return nbt;
         }
 
-        public static FoodBlockState fromNbt(ServerWorld world, NbtCompound nbt) {
+        public static FoodBlockState fromNbt(ServerLevel world, CompoundTag nbt) {
             FoodBlockState foodBlockState = new FoodBlockState(world);
-            if (nbt.contains("FoodBlocks", NbtElement.LIST_TYPE)) {
-                NbtList foodBlocks = nbt.getList("FoodBlocks", NbtElement.COMPOUND_TYPE);
+            if (nbt.contains("FoodBlocks", Tag.TAG_LIST)) {
+                ListTag foodBlocks = nbt.getList("FoodBlocks", Tag.TAG_COMPOUND);
                 for (int i = 0; i < foodBlocks.size(); i++) {
-                    NbtCompound foodBlock = foodBlocks.getCompound(i);
+                    CompoundTag foodBlock = foodBlocks.getCompound(i);
                     foodBlockState.FOOD_BLOCK_MAP.put(new BlockPos(foodBlock.getInt("X"), foodBlock.getInt("Y"), foodBlock.getInt("Z")),
                             new SpoiledComponent(foodBlock.getString("Season"), foodBlock.getInt("Year")));
                 }
             } else {
                 for (int i = 0; i < nbt.getInt("FoodBlockMapSize"); i++) {
-                    if (nbt.contains("FoodBlockSeason" + i, NbtElement.STRING_TYPE)) {
+                    if (nbt.contains("FoodBlockSeason" + i, Tag.TAG_STRING)) {
                         foodBlockState.FOOD_BLOCK_MAP.put(new BlockPos(nbt.getInt("FoodBlockX" + i), nbt.getInt("FoodBlockY" + i), nbt.getInt("FoodBlockZ" + i)),
                                 new SpoiledComponent(nbt.getString("FoodBlockSeason" + i), nbt.getInt("FoodBlockYear" + i)));
                     }
@@ -451,13 +450,13 @@ public class SpoiledUtil {
         }
 
         public void addFoodBlock(BlockPos pos, SpoiledComponent spoiledComponent) {
-            this.FOOD_BLOCK_MAP.put(pos.toImmutable(), spoiledComponent);
-            this.markDirty();
+            this.FOOD_BLOCK_MAP.put(pos.immutable(), spoiledComponent);
+            this.setDirty();
         }
 
         public void removeFoodBlock(BlockPos pos) {
             if (this.FOOD_BLOCK_MAP.remove(pos) != null) {
-                this.markDirty();
+                this.setDirty();
             }
         }
 
@@ -474,17 +473,17 @@ public class SpoiledUtil {
             while (iterator.hasNext()) {
                 Map.Entry<BlockPos, SpoiledComponent> entry = iterator.next();
                 BlockPos pos = entry.getKey();
-                if (!this.world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
+                if (!this.world.hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
                     continue;
                 }
                 BlockState state = this.world.getBlockState(pos);
-                if (state.contains(SPOILED)) {
-                    if (state.get(SPOILED)) {
+                if (state.hasProperty(SPOILED)) {
+                    if (state.getValue(SPOILED)) {
                         iterator.remove();
-                        this.markDirty();
+                        this.setDirty();
                     } else if (getSpoilingTime(this.world, entry.getValue()) >= 4) {
                         iterator.remove();
-                        this.markDirty();
+                        this.setDirty();
                         if (spoiledPositions == null) {
                             spoiledPositions = new ArrayList<>();
                         }
@@ -492,51 +491,51 @@ public class SpoiledUtil {
                     }
                 } else if (!(state.getBlock() instanceof CandleCakeBlock)) {
                     iterator.remove();
-                    this.markDirty();
+                    this.setDirty();
                 }
             }
             if (spoiledPositions != null) {
                 for (BlockPos pos : spoiledPositions) {
                     BlockState state = this.world.getBlockState(pos);
-                    if (state.contains(SPOILED)) {
-                        this.world.setBlockState(pos, state.with(SPOILED, true));
+                    if (state.hasProperty(SPOILED)) {
+                        this.world.setBlockAndUpdate(pos, state.setValue(SPOILED, true));
                     }
                 }
             }
         }
 
-        public static int getFoodBlockSpoilingTime(ServerWorld world, BlockPos pos, BlockState state) {
-            if (state.contains(SPOILED) && state.get(SPOILED)) {
+        public static int getFoodBlockSpoilingTime(ServerLevel world, BlockPos pos, BlockState state) {
+            if (state.hasProperty(SPOILED) && state.getValue(SPOILED)) {
                 return 4;
             }
             SpoiledComponent spoiledComponent = ((ServerWorldAccess) world).getFoodBlockState().getFoodBlockMap().get(pos);
             return getSpoilingTime(world, spoiledComponent);
         }
 
-        public static void onRemovedFoodBlock(World world, BlockPos pos, BlockState newState) {
+        public static void onRemovedFoodBlock(Level world, BlockPos pos, BlockState newState) {
             if (world instanceof ServerWorldAccess serverWorldAccess && serverWorldAccess.getFoodBlockState().getFoodBlockMap().containsKey(pos)) {
                 if (newState.getBlock() instanceof CandleCakeBlock) {
                     return;
                 }
-                if (newState.contains(SPOILED) && !newState.get(SPOILED)) {
+                if (newState.hasProperty(SPOILED) && !newState.getValue(SPOILED)) {
                     return;
                 }
                 serverWorldAccess.getFoodBlockState().removeFoodBlock(pos);
             }
         }
 
-        public static void onPlacedFoodBlock(World world, BlockPos pos, BlockState state, ItemStack itemStack) {
-            if (world instanceof ServerWorld serverWorld) {
+        public static void onPlacedFoodBlock(Level world, BlockPos pos, BlockState state, ItemStack itemStack) {
+            if (world instanceof ServerLevel serverWorld) {
                 SpoiledComponent spoiledComponent = getSpoiledComponent(itemStack);
                 if (spoiledComponent == null) {
                     spoiledComponent = getCurrentSpoiledComponent(serverWorld);
                 }
                 if (getSpoilingTime(serverWorld, spoiledComponent) >= 4) {
-                    serverWorld.setBlockState(pos, state.with(SpoiledUtil.SPOILED, true));
+                    serverWorld.setBlockAndUpdate(pos, state.setValue(SpoiledUtil.SPOILED, true));
                 } else {
                     ((ServerWorldAccess) serverWorld).getFoodBlockState().addFoodBlock(pos, spoiledComponent);
-                    if (state.get(SpoiledUtil.SPOILED)) {
-                        serverWorld.setBlockState(pos, state.with(SpoiledUtil.SPOILED, false));
+                    if (state.getValue(SpoiledUtil.SPOILED)) {
+                        serverWorld.setBlockAndUpdate(pos, state.setValue(SpoiledUtil.SPOILED, false));
                     }
                 }
             }
