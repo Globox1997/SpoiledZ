@@ -1,0 +1,13 @@
+{
+    "item.spoiledz.tooltip": "Spoiled %s%%",
+    "tag.item.spoiledz.spoiling_items": "Spoiling Items",
+    "tag.item.spoiledz.non_spoiling_items": "Non Spoiling Items",
+    "text.autoconfig.spoiledz.title": "SpoiledZ Config",
+    "text.autoconfig.spoiledz.option.freshCrafting": "Fresh Crafting",
+    "text.autoconfig.spoiledz.option.effectChance": "Effect Chance",
+    "text.autoconfig.spoiledz.option.effectDuration": "Effect Duration",
+    "text.autoconfig.spoiledz.option.seasonSpoilage": "Season Spoilage",
+    "pack.spoiledz.adventurez_spoiledz_compat": "SpoiledZ AdventureZ Compat",
+    "pack.spoiledz.farmz_spoiledz_compat": "SpoiledZ FarmZ Compat",
+    "pack.spoiledz.oblivion_spoiledz_compat": "SpoiledZ Oblivion Compat"
+}

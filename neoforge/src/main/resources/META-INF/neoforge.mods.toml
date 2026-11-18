@@ -1,0 +1,44 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+issueTrackerURL = "https://github.com/Globox1997/SpoiledZ/issues"
+
+[[mods]]
+modId = "spoiledz"
+version = "${version}"
+displayName = "SpoiledZ"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/spoiledz"
+iconFile = "assets/spoiledz/icon.png"
+authors = "Globox_Z, SpigotDE"
+description = '''Adds season spoilage to food items'''
+
+[[mixins]]
+config = "spoiledz.mixins.json"
+
+[[dependencies.spoiledz]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforge_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.spoiledz]]
+modId = "minecraft"
+type = "required"
+versionRange = "[${minecraft_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.spoiledz]]
+modId = "cloth_config"
+type = "required"
+versionRange = "[${cloth_config_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.spoiledz]]
+modId = "sereneseasons"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
